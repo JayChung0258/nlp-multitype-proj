@@ -201,6 +201,11 @@ results/transformer/checkpoints/
 models/
 checkpoints/
 
+# Reports (generated from notebooks)
+# Keep the directory but ignore generated reports
+# reports/*.md
+# !reports/README.md
+
 # Generated figures (can be regenerated)
 figures/data/*.png
 figures/results/*.png

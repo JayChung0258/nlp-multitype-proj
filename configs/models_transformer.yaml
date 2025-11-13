@@ -1,0 +1,167 @@
+# Transformer Model Configuration for NLP Multi-Type Classification Project
+# This file defines transformer models and their training hyperparameters.
+
+# ============================================================
+# COMMON TRAINING PARAMETERS
+# ============================================================
+# These parameters apply to all transformer models unless overridden
+
+common:
+  # Maximum sequence length (tokens)
+  max_seq_length: 256
+  
+  # Training epochs
+  num_epochs: 3
+  
+  # Learning rate
+  learning_rate: 2.0e-5
+  
+  # Batch sizes
+  per_device_train_batch_size: 16
+  per_device_eval_batch_size: 32
+  
+  # Gradient accumulation (effective batch size = batch_size * accumulation_steps)
+  gradient_accumulation_steps: 1
+  
+  # Warmup steps for learning rate scheduler
+  warmup_steps: 500
+  
+  # Weight decay for AdamW
+  weight_decay: 0.01
+  
+  # Random seed for reproducibility
+  seed: 42
+  
+  # Evaluation strategy
+  eval_strategy: epoch  # Evaluate at end of each epoch
+  
+  # Logging
+  logging_steps: 100
+  logging_strategy: steps
+  
+  # Save strategy
+  save_strategy: epoch
+  save_total_limit: 2  # Keep only best 2 checkpoints
+  
+  # Early stopping (optional)
+  # load_best_model_at_end: true
+  # metric_for_best_model: macro_f1
+  
+  # Primary metric for evaluation
+  metric_primary: macro_f1
+  
+  # Optimizer
+  optim: adamw_torch
+  
+  # Mixed precision training (fp16 or bf16)
+  # fp16: true  # Enable for GPU speedup
+  
+  # DataLoader settings
+  dataloader_num_workers: 4
+  dataloader_pin_memory: true
+
+# ============================================================
+# TRANSFORMER MODELS TO BENCHMARK
+# ============================================================
+# Each model is identified by its Hugging Face model ID
+
+models:
+  # ------------------------------
+  # DistilBERT
+  # ------------------------------
+  # Lightweight, fast, good baseline
+  - name: distilbert-base-uncased
+    # Model-specific overrides (if needed)
+    # learning_rate: 3.0e-5
+  
+  # ------------------------------
+  # BERT
+  # ------------------------------
+  # Standard transformer baseline
+  - name: bert-base-uncased
+  
+  # ------------------------------
+  # RoBERTa
+  # ------------------------------
+  # Robust BERT variant, often better performance
+  - name: roberta-base
+  
+  # ------------------------------
+  # DeBERTa-v3
+  # ------------------------------
+  # State-of-the-art performance on many tasks
+  - name: microsoft/deberta-v3-base
+    # DeBERTa may benefit from slightly lower learning rate
+    # learning_rate: 1.5e-5
+
+# ============================================================
+# OPTIONAL MODELS
+# ============================================================
+# Uncomment to include in experiments
+
+optional_models:
+  # ------------------------------
+  # ELECTRA
+  # ------------------------------
+  # Efficient pre-training, good performance
+  - name: google/electra-base-discriminator
+    # learning_rate: 2.0e-5
+
+# ============================================================
+# TRAINING CONFIGURATION
+# ============================================================
+training:
+  # Use GPU if available
+  use_gpu: true
+  
+  # Multi-GPU training (if available)
+  # n_gpu: 2
+  
+  # Output directory for checkpoints and logs
+  output_dir: results/transformer/checkpoints/
+  
+  # Save full model or just weights
+  save_full_model: false
+  
+  # Push to Hugging Face Hub (requires authentication)
+  push_to_hub: false
+
+# ============================================================
+# TOKENIZATION
+# ============================================================
+tokenization:
+  # Padding strategy
+  padding: max_length
+  
+  # Truncation strategy
+  truncation: true
+  
+  # Add special tokens
+  add_special_tokens: true
+  
+  # Return attention masks
+  return_attention_mask: true
+  
+  # Return token type IDs (for BERT-style models)
+  return_token_type_ids: false
+
+# ============================================================
+# ROBUSTNESS TESTING (for future use)
+# ============================================================
+robustness:
+  # Number of seeds for stability testing
+  num_seeds: 3
+  seeds: [42, 123, 456]
+  
+  # Perturbation tests
+  perturbations:
+    - lowercase
+    - remove_punctuation
+    - synonym_swap
+  
+  # Length stratification bins
+  length_bins:
+    short: [0, 50]    # 0-50 words
+    medium: [51, 150]  # 51-150 words
+    long: [151, 9999]  # 151+ words
+

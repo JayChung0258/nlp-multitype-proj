@@ -1,0 +1,74 @@
+# Data Configuration for NLP Multi-Type Classification Project
+# This file defines paths, label mappings, split parameters, and preprocessing rules.
+
+# ============================================================
+# DATA PATHS
+# ============================================================
+raw_dir: data/raw
+processed_dir: data/processed
+
+# Output file names (will be created in processed_dir)
+train_file: data/processed/train_4class.csv
+val_file: data/processed/val_4class.csv
+test_file: data/processed/test_4class.csv
+
+# ============================================================
+# LABEL MAPPING
+# ============================================================
+# Canonical mapping from string labels to integers
+# T1: Human Original → 0
+# T2: LLM Generated → 1
+# T3: Human Paraphrased → 2
+# T4: LLM Paraphrased → 3
+label_map:
+  T1: 0
+  T2: 1
+  T3: 2
+  T4: 3
+
+# ============================================================
+# TRAIN/VAL/TEST SPLIT CONFIGURATION
+# ============================================================
+split:
+  # Split ratios (must sum to 1.0)
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+  
+  # Random seed for reproducibility
+  seed: 42
+  
+  # Column name for family-aware grouping
+  # CRITICAL: All samples from the same family must go to the same split
+  group_key: family_id
+
+# ============================================================
+# PREPROCESSING OPTIONS
+# ============================================================
+preprocessing:
+  # Strip leading/trailing whitespace from text
+  strip_whitespace: true
+  
+  # Apply unicode normalization (NFC form)
+  normalize_unicode: true
+  
+  # Drop samples with empty text after preprocessing
+  drop_empty: true
+  
+  # Remove exact duplicate texts within dataset
+  deduplicate: true
+  
+  # Maximum allowed text length in characters (guardrail for outliers)
+  # Texts exceeding this will be flagged/truncated/removed based on policy
+  max_len_chars: 4000
+
+# ============================================================
+# VALIDATION THRESHOLDS
+# ============================================================
+validation:
+  # Minimum class proportion (warn if any class < this threshold)
+  min_class_proportion: 0.10
+  
+  # Fail build if leakage detected (families in multiple splits)
+  fail_on_leakage: true
+

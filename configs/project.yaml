@@ -1,0 +1,178 @@
+# Project-Level Configuration for NLP Multi-Type Classification Project
+# This file defines global settings for output directories, reporting, and runtime.
+
+# ============================================================
+# OUTPUT DIRECTORIES
+# ============================================================
+output_dirs:
+  # Base results directory
+  results_dir: results
+  
+  # Subdirectories for different model types
+  baseline_results: results/baseline
+  transformer_results: results/transformer
+  robustness_results: results/robustness
+  
+  # Figures output directory
+  figures_dir: figures
+  
+  # Subdirectories for different figure types
+  data_figures: figures/data
+  results_figures: figures/results
+  
+  # Logs directory
+  logs_dir: logs
+  
+  # Cached data directory (for processed datasets, embeddings, etc.)
+  cache_dir: .cache
+
+# ============================================================
+# REPORTING OPTIONS
+# ============================================================
+reporting:
+  # Save classification report (precision/recall/F1 per class)
+  save_classification_report: true
+  
+  # Save confusion matrix as CSV and PNG
+  save_confusion_matrix: true
+  
+  # Save aggregated metrics CSV
+  save_metrics_csv: true
+  
+  # Save per-run JSON with full details
+  save_metrics_json: true
+  
+  # Save misclassified examples for error analysis
+  save_misclassified_samples: true
+  max_misclassified_samples: 100
+  
+  # Generate comparison plots automatically
+  generate_plots: true
+  
+  # Save intermediate results (e.g., predictions)
+  save_predictions: true
+
+# ============================================================
+# RUNTIME CONFIGURATION
+# ============================================================
+runtime:
+  # Number of worker processes for data loading
+  num_workers: 4
+  
+  # Enable deterministic mode (may reduce performance)
+  deterministic: true
+  
+  # Random seed (default, can be overridden per experiment)
+  default_seed: 42
+  
+  # Disable progress bars (for cleaner logs in batch jobs)
+  disable_progress_bars: false
+  
+  # Logging level
+  log_level: INFO  # DEBUG, INFO, WARNING, ERROR
+  
+  # Console output format
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# ============================================================
+# FIGURE STYLE SETTINGS
+# ============================================================
+figures:
+  # Figure format for saving
+  format: png
+  dpi: 300
+  
+  # Matplotlib/Seaborn style
+  style: whitegrid  # darkgrid, whitegrid, dark, white, ticks
+  
+  # Color palette
+  palette: deep  # deep, muted, pastel, bright, dark, colorblind
+  
+  # Default figure size (width, height in inches)
+  figsize: [10, 6]
+  
+  # Font sizes
+  font_size:
+    title: 14
+    label: 12
+    tick: 10
+    legend: 10
+  
+  # Save figures with tight layout
+  tight_layout: true
+
+# ============================================================
+# DATA PROCESSING OPTIONS
+# ============================================================
+data:
+  # Cache processed datasets to disk
+  cache_processed_data: true
+  
+  # Validate data integrity on load
+  validate_on_load: true
+  
+  # Maximum samples to load (for debugging; null = load all)
+  max_samples: null
+  
+  # Shuffle training data
+  shuffle_train: true
+
+# ============================================================
+# EXPERIMENT TRACKING
+# ============================================================
+tracking:
+  # Enable experiment tracking (e.g., MLflow, Weights & Biases)
+  enabled: false
+  
+  # Tracking backend (mlflow, wandb, tensorboard)
+  backend: mlflow
+  
+  # Experiment name
+  experiment_name: nlp-multitype-classification
+  
+  # Run name prefix (will be appended with model name and timestamp)
+  run_name_prefix: exp
+  
+  # Tags to add to all runs
+  tags:
+    project: nlp-multitype
+    task: 4-class-classification
+    author: ""  # Fill in as needed
+
+# ============================================================
+# AWS INTEGRATION (for future use)
+# ============================================================
+aws:
+  # S3 bucket for data and results
+  s3_bucket: ""  # To be configured when moving to AWS
+  
+  # S3 paths
+  s3_data_prefix: data/
+  s3_results_prefix: results/
+  s3_models_prefix: models/
+  
+  # SageMaker configuration
+  sagemaker:
+    instance_type: ml.p3.2xlarge  # GPU instance for training
+    use_spot_instances: true
+    max_wait_time_hours: 24
+    max_run_time_hours: 12
+  
+  # EC2 configuration (alternative to SageMaker)
+  ec2:
+    instance_type: p3.2xlarge
+    ami_id: ""  # Deep Learning AMI
+    key_name: ""
+    security_group: ""
+
+# ============================================================
+# CONTACT AND METADATA
+# ============================================================
+metadata:
+  project_name: "NLP Multi-Type Text Classification"
+  version: "1.0.0"
+  description: "Benchmark project for 4-class single-sentence classification (T1/T2/T3/T4)"
+  created_date: "2025-11-13"
+  authors: []
+  license: ""
+

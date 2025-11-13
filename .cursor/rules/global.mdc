@@ -1,0 +1,75 @@
+---
+alwaysApply: true
+---
+# .cursorrules
+# Global defaults for how Cursor AI should behave across this repo.
+
+- name: Global defaults
+  description: High-level behavior and style rules that apply to all files.
+  priority: 0
+  matches:
+    - "*"
+
+  rules:
+    # ────────── General behavior ──────────
+    - When I ask for changes, keep diffs as small and focused as reasonably possible.
+    - Before doing any large refactor or creating many new files, briefly propose a plan in the chat and wait for my confirmation.
+    - Never delete significant code or files unless I explicitly say it is safe to remove them.
+    - Preserve existing style, patterns, and architecture in the files you edit unless I explicitly ask to change them.
+    - If the existing codebase is inconsistent, follow the style of the file or module you are editing.
+
+    # ────────── Language & communication ──────────
+    - I prefer explanations and comments in English, but when I speak Chinese (Traditional), you can also answer in Traditional Chinese for explanations in chat.
+    - Do not be overly verbose in explanations. Focus on what changed, why, and any gotchas I should know.
+    - In commit-sized edits, include a brief summary comment in the chat describing the main changes.
+
+    # ────────── Code safety & correctness ──────────
+    - Favor correctness and clarity over cleverness or micro-optimizations, unless I explicitly ask for performance tuning.
+    - Avoid introducing breaking changes to public APIs without clearly calling them out in the chat.
+    - If you are not sure about an assumption (e.g., data shape, API contract), leave a clear TODO or comment rather than guessing silently.
+    - Prefer pure functions and explicit data flow when possible.
+
+    # ────────── Python style ──────────
+    - Follow PEP 8 for Python formatting (respecting existing style if there is a formatter like black/ruff configured).
+    - Use type hints for new or modified Python functions where reasonable.
+    - Add or update docstrings for any new public functions, classes, or modules you create.
+    - When changing non-trivial business logic, consider how it will be tested and, if appropriate, suggest or add unit tests.
+
+    # ────────── JavaScript / TypeScript / React ──────────
+    - Prefer TypeScript over JavaScript when adding new frontend or backend files, unless the project is clearly JS-only.
+    - Use modern ES modules, async/await, and functional React components with hooks.
+    - Keep components small and focused; extract reusable pieces when they are clearly shared logic, not aggressively.
+    - Avoid introducing new frontend dependencies unless absolutely necessary; if needed, explain why and how it fits with existing stack.
+
+    # ────────── Django / backend web work ──────────
+    - When editing Django code, respect separation between models, views, serializers, and business logic; avoid putting heavy logic in views.
+    - For database changes, be explicit and careful. Do not assume it is safe to change existing fields or constraints without a note.
+    - For any new complex query or data pipeline, briefly comment on performance implications and possible bottlenecks.
+
+    # ────────── Tests & validation ──────────
+    - If a change affects core logic, either update existing tests or point out where tests should be added.
+    - Do not silently skip or delete tests. If a test must be changed or removed, explain the reasoning.
+    - Use realistic, meaningful test data instead of trivial dummy values when possible.
+
+    # ────────── Files & structure ──────────
+    - Do not reorganize project structure (moving many files or packages) unless I explicitly request it.
+    - When introducing new files, keep names descriptive and consistent with existing naming conventions.
+    - Keep configuration and environment-specific values out of code; prefer config files or environment variables.
+
+    # ────────── Performance & scalability ──────────
+    - When dealing with potentially large datasets or heavy loops, prefer vectorized operations, streaming, or batching over naive per-item loops.
+    - Call out any obvious N^2 or worse patterns you introduce or encounter, and suggest safer alternatives if relevant.
+
+    # ────────── Documentation & comments ──────────
+    - Write comments that explain “why” more than “what”; the code already shows the “what”.
+    - Keep comments up to date with the code; if you significantly change behavior, update or remove stale comments.
+    - For new modules or important entrypoints, add a short header comment explaining the purpose and how they fit into the system.
+
+    # ────────── Dependencies & tools ──────────
+    - Do not add new third-party dependencies without explicitly mentioning them in the chat and explaining why they are needed.
+    - When modifying project configs (e.g., linters, formatters, CI), keep the changes minimal and explain the impact.
+
+    # ────────── NLP / data / ML-specific (for this user) ──────────
+    - When working on NLP or ML code, prefer clear data contracts (input/output shapes, types) and document them.
+    - For experiments, keep configuration (hyperparameters, model names, seeds, data paths) in config files or constants, not hard-coded in the middle of scripts.
+    - When adding or modifying experiment scripts, think about reproducibility: log seeds, data splits, and key metrics in a structured way.

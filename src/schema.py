@@ -14,7 +14,7 @@ from dataclasses import dataclass
 # RAW DATA SCHEMA
 # ============================================================
 @dataclass
-class RawFamilyRow:
+class RawFamily:
     """
     Schema for raw input data organized by family.
     
@@ -22,19 +22,19 @@ class RawFamilyRow:
     different generation/paraphrase types.
     
     Attributes:
-        family_id: Unique identifier for grouping related samples
+        family_id: Unique identifier constructed as "<source>_<idx>"
+        source: Data source (mrpc, paws, or hlpc)
         type1: Human original text (may be None if not available)
         type2: LLM generated text (may be None if not available)
         type3: Human paraphrased text (may be None if not available)
         type4: LLM paraphrased text (may be None if not available)
-        metadata: Optional additional fields (source, domain, etc.)
     """
     family_id: str
+    source: str
     type1: Optional[str] = None
     type2: Optional[str] = None
     type3: Optional[str] = None
     type4: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
 
 
 # ============================================================
@@ -45,24 +45,39 @@ class ProcessedRow:
     """
     Schema for processed single-sentence classification samples.
     
-    This is the format used in train_4class.csv, val_4class.csv, and test_4class.csv.
+    This is the format used in train_4class.jsonl, val_4class.jsonl, and test_4class.jsonl.
     
-    Required fields:
+    All fields are required:
+        id: Globally unique row identifier "<family_id>__<label>"
         family_id: Links back to original family (for leakage checks)
-        text: The sentence to classify (non-empty, stripped)
-        label: One of {T1, T2, T3, T4} or integer {0, 1, 2, 3}
-    
-    Optional fields:
-        text_len_char: Character count (for analysis)
-        text_len_word: Word count (for analysis)
-        split: Split assignment (train/val/test), useful for merged manifests
+        source: Data source (mrpc, paws, or hlpc)
+        text: The sentence to classify (non-empty, normalized)
+        label: One of {T1, T2, T3, T4}
+        label_id: Integer mapping (0, 1, 2, 3)
+        text_len_char: Character count
+        text_len_word: Word count (whitespace split)
     """
+    id: str
     family_id: str
+    source: str
     text: str
-    label: str  # or int, depending on implementation choice
-    text_len_char: Optional[int] = None
-    text_len_word: Optional[int] = None
-    split: Optional[str] = None
+    label: str
+    label_id: int
+    text_len_char: int
+    text_len_word: int
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "id": self.id,
+            "family_id": self.family_id,
+            "source": self.source,
+            "text": self.text,
+            "label": self.label,
+            "label_id": self.label_id,
+            "text_len_char": self.text_len_char,
+            "text_len_word": self.text_len_word,
+        }
 
 
 # ============================================================

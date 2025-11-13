@@ -33,16 +33,33 @@ ID2LABEL = {
 }
 
 # ============================================================
-# DATA SCHEMA
+# RAW DATA FIELD NAMES
 # ============================================================
-# Required columns in processed CSVs (train/val/test)
-REQUIRED_COLUMNS = ["family_id", "text", "label"]
+# Field names in raw JSON data
+RAW_FIELD_TYPE1 = "human_original_text(type1)"
+RAW_FIELD_TYPE2 = "llm_generated_text(type2)"
+RAW_FIELD_TYPE3 = "human_paraphrased_text(type3)"
+RAW_FIELD_TYPE4 = "llm_paraphrased_original_text(type4)-prompt-based"
 
-# Optional metadata columns that may be included
-OPTIONAL_COLUMNS = ["text_len_char", "text_len_word", "split"]
+# Mapping from raw field names to labels
+RAW_FIELD_TO_LABEL = {
+    RAW_FIELD_TYPE1: "T1",
+    RAW_FIELD_TYPE2: "T2",
+    RAW_FIELD_TYPE3: "T3",
+    RAW_FIELD_TYPE4: "T4",
+}
 
-# All column names for reference
-COLUMN_NAMES = REQUIRED_COLUMNS + OPTIONAL_COLUMNS
+# Valid data sources
+VALID_SOURCES = ["mrpc", "paws", "hlpc"]
+
+# ============================================================
+# DATA SCHEMA (JSONL)
+# ============================================================
+# Required fields in processed JSONL (train/val/test)
+REQUIRED_FIELDS = ["id", "family_id", "source", "text", "label", "label_id", "text_len_char", "text_len_word"]
+
+# All field names for reference
+FIELD_NAMES = REQUIRED_FIELDS
 
 # ============================================================
 # SPLIT CONFIGURATION
@@ -51,7 +68,7 @@ COLUMN_NAMES = REQUIRED_COLUMNS + OPTIONAL_COLUMNS
 DEFAULT_SEED = 42
 
 # Split ratios (must sum to 1.0)
-SPLIT_RATIOS = {
+DEFAULT_SPLIT_RATIOS = {
     "train": 0.70,
     "val": 0.15,
     "test": 0.15,
@@ -72,9 +89,10 @@ MIN_CLASS_PROPORTION = 0.10
 # ============================================================
 # FILE NAMING CONVENTIONS
 # ============================================================
-TRAIN_FILENAME = "train_4class.csv"
-VAL_FILENAME = "val_4class.csv"
-TEST_FILENAME = "test_4class.csv"
+TRAIN_FILENAME = "train_4class.jsonl"
+VAL_FILENAME = "val_4class.jsonl"
+TEST_FILENAME = "test_4class.jsonl"
+MANIFEST_FILENAME = "manifest.json"
 
 # ============================================================
 # EVALUATION METRICS

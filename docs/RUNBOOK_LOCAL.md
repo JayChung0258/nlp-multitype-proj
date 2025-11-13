@@ -136,8 +136,10 @@ split:
 ### Step 3: Run Data Preparation
 
 ```bash
-python src/data_prep.py --config configs/data_config.yaml
+python3 -m src.data_prep
 ```
+
+**Note:** The script reads configuration from `configs/data_config.yaml` automatically.
 
 **Expected output:**
 
@@ -146,38 +148,81 @@ python src/data_prep.py --config configs/data_config.yaml
 NLP Multi-Type Classification: Data Preparation
 ============================================================
 
-Loading raw data from data/raw/...
-Found 1000 families
+Configuration:
+  Raw data directory: data/raw
+  Processed data directory: data/processed
+  Split ratios: {'train': 0.7, 'val': 0.15, 'test': 0.15}
+  Random seed: 42
 
-Building single-sentence samples...
-Created 3800 samples (some families have missing types)
+[1/7] Loading raw data from data/raw
+Found 2 raw data file(s)
+  Loading: data.json
+Loaded 10000 families from raw data
 
-Preprocessing text...
-Stripped whitespace, normalized unicode
+[2/7] Materializing rows from families
+Materialized 35420 rows from families
 
-Deduplicating...
-Removed 23 duplicate texts
+[3/7] Performing family-aware split
+Splitting 10000 families into train/val/test
+  Train families: 7000
+  Val families: 1500
+  Test families: 1500
+  Train rows: 24794
+  Val rows: 5313
+  Test rows: 5313
 
-Performing family-aware split...
-Train: 2660 samples (700 families)
-Val: 570 samples (150 families)
-Test: 570 samples (150 families)
+[4/7] Deduplicating within splits
+  Train split:
+    Removed 23 duplicate rows
+  Val split:
+  Test split:
 
-Validating splits...
-✓ PASS: No family leakage detected
-✓ PASS: All labels valid
-⚠ WARNING: Class T3 is 8.2% (below 10% threshold)
+[5/7] Validating splits
+  ✓ PASS: No family leakage detected
+  ✓ PASS: All rows have valid field values
+  ✓ Train split has all labels
+  ✓ Val split has all labels
+  ✓ Test split has all labels
 
-Class distribution:
-         T1    T2    T3    T4
-Train   720   680   310   950
-Val     154   146    66   204
-Test    152   148    68   202
+[6/7] Writing JSONL files to data/processed
+  Wrote 24771 rows to train_4class.jsonl
+  Wrote 5313 rows to val_4class.jsonl
+  Wrote 5313 rows to test_4class.jsonl
 
-Writing processed CSVs...
-✓ data/processed/train_4class.csv
-✓ data/processed/val_4class.csv
-✓ data/processed/test_4class.csv
+[7/7] Computing and writing manifest
+  Wrote manifest to manifest.json
+
+============================================================
+SUMMARY
+============================================================
+Total rows: 35397
+Total families: 10000
+
+Rows per split:
+  train: 24771
+  val: 5313
+  test: 5313
+
+Rows per label per split:
+  train:
+    T1: 6850
+    T2: 6723
+    T3: 5601
+    T4: 5597
+  val:
+    T1: 1469
+    T2: 1441
+    T3: 1201
+    T4: 1202
+  test:
+    T1: 1469
+    T2: 1441
+    T3: 1201
+    T4: 1202
+
+Dropped rows:
+  empty_text: 23
+  too_long: 0
 
 Data preparation complete!
 ============================================================
@@ -190,15 +235,22 @@ ls -lh data/processed/
 ```
 
 Expected files:
-- `train_4class.csv`
-- `val_4class.csv`
-- `test_4class.csv`
+- `train_4class.jsonl` — Training split (JSONL format)
+- `val_4class.jsonl` — Validation split (JSONL format)
+- `test_4class.jsonl` — Test split (JSONL format)
+- `manifest.json` — Dataset statistics and metadata
 
 **Quick check:**
 
 ```bash
-head -n 5 data/processed/train_4class.csv
-wc -l data/processed/*.csv
+# Count lines in JSONL files
+wc -l data/processed/*.jsonl
+
+# View first few rows
+head -n 3 data/processed/train_4class.jsonl
+
+# View manifest
+cat data/processed/manifest.json | python3 -m json.tool
 ```
 
 ---

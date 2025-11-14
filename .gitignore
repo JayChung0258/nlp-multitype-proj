@@ -4,11 +4,15 @@
 # Data Files
 # ============================================================
 # Processed data (can be regenerated)
-data/processed/
+data/processed/*.jsonl
+data/processed/manifest.json
 
 # Large raw data files (optional - commit if small enough)
 # data/raw/*.json
 # data/raw/*.csv
+
+# Keep processed data directory structure
+!data/processed/.gitkeep
 
 # ============================================================
 # Python
@@ -186,25 +190,36 @@ $RECYCLE.BIN/
 # ============================================================
 # Project-Specific
 # ============================================================
-# Model checkpoints and weights (large files)
+# Trained models and checkpoints (large files - DO NOT PUSH)
+results/baseline/*.joblib
 results/baseline/models/
-results/transformer/models/
-results/transformer/checkpoints/
+results/transformer/*/model/
+results/transformer/*/checkpoints/
+results/transformer/*/logs/
+
+# Model weight files (large - DO NOT PUSH)
 *.pt
 *.pth
 *.ckpt
 *.h5
 *.pkl
 *.pickle
+*.bin
+*.safetensors
 
-# Large model files
+# Any other model directories
 models/
 checkpoints/
 
-# Reports (generated from notebooks)
-# Keep the directory but ignore generated reports
-# reports/*.md
-# !reports/README.md
+# Keep only small files for version control:
+# - metrics.json (small, useful)
+# - report.txt (small, useful)
+# - confusion_matrix.png (small visualization)
+# But NOT the actual model weights
+
+# Generated reports from notebooks
+reports/*.md
+!reports/README.md
 
 # Generated figures (can be regenerated)
 figures/data/*.png

@@ -1,0 +1,63 @@
+{
+  "model_name": "distilbert-base-uncased",
+  "model_slug": "distilbert-base-uncased",
+  "timestamp_utc": "2025-11-13T17:15:05.337650Z",
+  "train_samples": 13966,
+  "val_samples": 2996,
+  "test_samples": 2997,
+  "max_seq_length": 256,
+  "train_batch_size": 16,
+  "eval_batch_size": 32,
+  "num_train_epochs": 3.0,
+  "learning_rate": 2e-05,
+  "weight_decay": 0.01,
+  "warmup_ratio": 0.1,
+  "seed": 42,
+  "num_parameters": 66956548,
+  "accuracy_test": 0.5922589255922589,
+  "macro_f1_test": 0.5785651942024219,
+  "f1_per_class_test": {
+    "T1": 0.4919454770755886,
+    "T2": 0.7687576875768758,
+    "T3": 0.35081967213114756,
+    "T4": 0.7027379400260756
+  },
+  "confusion_matrix_test": [
+    [
+      397,
+      66,
+      193,
+      94
+    ],
+    [
+      33,
+      625,
+      23,
+      69
+    ],
+    [
+      378,
+      73,
+      214,
+      82
+    ],
+    [
+      56,
+      112,
+      43,
+      539
+    ]
+  ],
+  "accuracy_val": 0.5847797062750334,
+  "macro_f1_val": 0.574219121597891,
+  "f1_per_class_val": {
+    "T1": 0.4727738629083921,
+    "T2": 0.7637051039697542,
+    "T3": 0.3711824588880188,
+    "T4": 0.6892150606253988
+  },
+  "train_time_sec": 3315.3549508331344,
+  "eval_time_test_sec": 84.65104191657156,
+  "throughput_samples_per_sec": 35.404171433042904,
+  "model_size_mb": 256.332
+}

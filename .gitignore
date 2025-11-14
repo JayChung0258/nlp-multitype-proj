@@ -284,3 +284,17 @@ events.out.tfevents.*
 # Backup files
 *.bak
 *.backup
+
+
+# cursor files
+.cursor/
+.cursorrules
+.cursorignore
+.cursorignorerules
+.cursorignorerules.md
+.cursorignorerules.txt
+.cursorignorerules.yaml
+.cursorignorerules.yml
+.cursorignorerules.json
+.cursorignorerules.jsonl
+.cursorignorerules.jsonl

@@ -1,0 +1,112 @@
+# AWS Configuration for NLP Multi-Type Classification Project
+# This file contains AWS-specific settings for S3, EC2, and other cloud resources.
+
+# ============================================================
+# S3 CONFIGURATION
+# ============================================================
+aws:
+  # Enable S3 integration (set to true when using S3)
+  use_s3: false
+  
+  # AWS region
+  region: "us-west-2"
+  
+  # S3 bucket name (replace with your bucket)
+  s3_bucket: ""  # e.g., "my-nlp-multitype-bucket"
+  
+  # S3 prefixes for different data types
+  s3_data_prefix: "nlp-multitype/data"
+  s3_results_prefix: "nlp-multitype/results"
+  s3_models_prefix: "nlp-multitype/models"
+  s3_reports_prefix: "nlp-multitype/reports"
+
+# ============================================================
+# EC2 CONFIGURATION
+# ============================================================
+ec2:
+  # Recommended instance types for training
+  recommended_instances:
+    # GPU instances (for transformers)
+    gpu_small: "g4dn.xlarge"      # 1x T4 GPU, 4 vCPUs, 16GB RAM (~$0.50/hr)
+    gpu_medium: "g4dn.2xlarge"    # 1x T4 GPU, 8 vCPUs, 32GB RAM (~$0.75/hr)
+    gpu_large: "g5.xlarge"        # 1x A10G GPU, 4 vCPUs, 16GB RAM (~$1.00/hr)
+    
+    # CPU instances (for baselines or small experiments)
+    cpu_small: "t3.large"         # 2 vCPUs, 8GB RAM (~$0.08/hr)
+    cpu_medium: "c5.2xlarge"      # 8 vCPUs, 16GB RAM (~$0.34/hr)
+  
+  # Recommended AMI
+  ami:
+    type: "Deep Learning AMI (Ubuntu 20.04)"
+    description: "AWS Deep Learning AMI with pre-installed CUDA, PyTorch, etc."
+    # Find latest: aws ec2 describe-images --owners amazon --filters "Name=name,Values=Deep Learning AMI (Ubuntu*)" --query 'Images[0].ImageId'
+  
+  # Storage
+  storage:
+    volume_size_gb: 100
+    volume_type: "gp3"
+  
+  # Security group
+  security_group:
+    # Allow SSH from your IP
+    ssh_port: 22
+    # Note: Configure security group to allow SSH only from your IP
+
+# ============================================================
+# DATA PATHS
+# ============================================================
+# Optional: Override data paths with environment variables on EC2
+# If DATA_ROOT is set, use it as base; otherwise use local paths
+data:
+  # Use environment variable $DATA_ROOT if available
+  use_env_var: false
+  env_var_name: "DATA_ROOT"
+  
+  # Default paths (relative to project root)
+  default_raw_dir: "data/raw"
+  default_processed_dir: "data/processed"
+
+# ============================================================
+# COST MANAGEMENT
+# ============================================================
+cost_control:
+  # Automatic shutdown after idle time (requires additional setup)
+  enable_auto_shutdown: false
+  idle_timeout_minutes: 60
+  
+  # Budget alerts
+  monthly_budget_usd: 100
+  alert_threshold_percent: 80
+
+# ============================================================
+# EXPERIMENT TRACKING
+# ============================================================
+# Optional: Configure MLflow or W&B for tracking experiments
+tracking:
+  enabled: false
+  backend: "mlflow"  # or "wandb"
+  
+  mlflow:
+    tracking_uri: ""  # e.g., "http://localhost:5000" or remote server
+    experiment_name: "nlp-multitype-classification"
+  
+  wandb:
+    project: "nlp-multitype"
+    entity: ""  # Your W&B username or team name
+
+# ============================================================
+# NOTES
+# ============================================================
+# To use S3:
+#   1. Set use_s3: true
+#   2. Set s3_bucket to your bucket name
+#   3. Configure AWS CLI credentials on EC2: aws configure
+#   4. Use src/aws_utils.py helper functions (or AWS CLI directly)
+#
+# To use this config in code:
+#   import yaml
+#   with open('configs/aws_config.yaml') as f:
+#       aws_config = yaml.safe_load(f)
+#   if aws_config['aws']['use_s3']:
+#       # Use S3 integration
+

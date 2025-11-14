@@ -328,36 +328,44 @@ See [`requirements.txt`](requirements.txt) for full list.
 
 ---
 
-## AWS Deployment
+## AWS EC2 Deployment
 
-### S3 Layout
+This project is **AWS EC2-ready** for GPU training on cloud infrastructure.
 
-```
-s3://my-nlp-bucket/
-├── data/processed/       # Train/val/test CSVs
-├── results/              # Metrics and predictions
-├── models/               # Trained models and checkpoints
-├── configs/              # YAML configs
-└── code/                 # Source files
-```
+### Quick Start (EC2)
 
-### SageMaker Training
+```bash
+# 1. Launch g4dn.xlarge GPU instance (AWS Console)
+# 2. SSH into instance
+ssh -i ~/.ssh/my-key.pem ubuntu@<EC2_IP>
 
-```python
-from sagemaker.pytorch import PyTorch
+# 3. Run automated setup
+./scripts/aws_ec2_setup.sh
 
-estimator = PyTorch(
-    entry_point='train_transformer.py',
-    role='arn:aws:iam::...:role/SageMakerRole',
-    instance_type='ml.p3.2xlarge',
-    use_spot_instances=True,
-    ...
-)
+# 4. Upload data from local
+./scripts/aws_sync_data.sh upload ubuntu@<EC2_IP> ~/.ssh/my-key.pem
 
-estimator.fit({'train': 's3://my-nlp-bucket/data/processed/train_4class.csv'})
+# 5. Train models
+python -m src.train_transformer --model_name bert-base-uncased
+
+# 6. Download results to local
+./scripts/aws_sync_results.sh ubuntu@<EC2_IP> ~/.ssh/my-key.pem
 ```
 
-See [`docs/RUNBOOK_AWS.md`](docs/RUNBOOK_AWS.md) for complete AWS setup.
+### AWS Helper Scripts
+
+- **`scripts/aws_ec2_setup.sh`** — Automated environment setup on EC2
+- **`scripts/aws_sync_data.sh`** — Sync data between local and EC2
+- **`scripts/aws_sync_results.sh`** — Download results from EC2
+
+### Cost Estimate
+
+**Running all 4 transformer models on g4dn.xlarge:**
+- **Time:** ~2 hours
+- **Cost (Spot):** ~$0.32
+- **Cost (On-Demand):** ~$1.05
+
+See [`docs/RUNBOOK_AWS_EC2.md`](docs/RUNBOOK_AWS_EC2.md) for complete EC2 workflow guide.
 
 ---
 

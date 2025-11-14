@@ -1,6 +1,6 @@
 {
   "model_name": "tfidf_logreg",
-  "timestamp_utc": "2025-11-13T23:33:21.622297Z",
+  "timestamp_utc": "2025-11-13T17:29:52.436728Z",
   "train_samples": 13966,
   "test_samples": 2997,
   "vocab_size": 20000,
@@ -38,6 +38,6 @@
       466
     ]
   ],
-  "train_time_sec": 0.5101431664079428,
+  "train_time_sec": 0.529691000469029,
   "model_size_mb": 1.354
 }

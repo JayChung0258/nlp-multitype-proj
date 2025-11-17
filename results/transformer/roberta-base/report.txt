@@ -1,0 +1,57 @@
+Transformer Model - Classification Report
+======================================================================
+
+MODEL: roberta-base
+Generated: 2025-11-17T11:31:02.094409Z
+
+TRAINING CONFIGURATION
+----------------------------------------------------------------------
+Max sequence length:   256
+Train batch size:      16
+Eval batch size:       32
+Epochs:                3.0
+Learning rate:         2e-05
+Weight decay:          0.01
+Warmup ratio:          0.1
+Random seed:           42
+Trainable parameters:  124,648,708
+
+VALIDATION SET METRICS
+----------------------------------------------------------------------
+Accuracy:  0.6959
+Macro-F1:  0.6510
+
+F1 per class:
+  T1 (Human Original):       0.6416
+  T2 (LLM Generated):        0.8871
+  T3 (Human Paraphrased):    0.1895
+  T4 (LLM Paraphrased):      0.8859
+
+TEST SET METRICS (FINAL)
+----------------------------------------------------------------------
+Accuracy:  0.6967
+Macro-F1:  0.6474
+
+F1 per class:
+  T1 (Human Original):       0.6549
+  T2 (LLM Generated):        0.8843
+  T3 (Human Paraphrased):    0.1723
+  T4 (LLM Paraphrased):      0.8782
+
+CONFUSION MATRIX (TEST)
+----------------------------------------------------------------------
+          Predicted
+          T1    T2    T3    T4
+Actual
+  T1     684     5    59     2
+  T2       0   707     6    37
+  T3     654    13    77     3
+  T4       1   124     5   620
+
+EFFICIENCY METRICS
+----------------------------------------------------------------------
+Training time:     8745.37 seconds (145.76 minutes)
+Test eval time:    239.22 seconds
+Throughput:        0.1 samples/sec
+
+======================================================================

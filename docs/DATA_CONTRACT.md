@@ -366,24 +366,5 @@ The `manifest.json` file contains dataset statistics and metadata.
 
 ---
 
-## Compliance Checklist
-
-Use this checklist to verify data contract compliance:
-
-- [ ] Raw data has `idx` and `dataset_source` for all records
-- [ ] Processed JSONL files have all required fields
-- [ ] All labels are in `{"T1", "T2", "T3", "T4"}`
-- [ ] All `label_id` values match `LABEL2ID` mapping
-- [ ] All texts are non-empty and normalized
-- [ ] Text length ≤ 4000 characters
-- [ ] No `family_id` appears in multiple splits
-- [ ] Split ratios are 70/15/15 (train/val/test)
-- [ ] Fixed seed (42) used for splitting
-- [ ] JSONL files use UTF-8 encoding
-- [ ] Manifest JSON contains all required fields
-- [ ] Type5 fields are ignored
-
----
-
 *Last updated: 2025-11-13*
 

@@ -6,7 +6,34 @@ This directory contains helper scripts for AWS EC2 workflows.
 
 ## Available Scripts
 
-### 1. `aws_ec2_setup.sh`
+### 1. `train_all_transformers.sh`
+
+**Purpose:** Train all transformer models sequentially
+
+**Usage:**
+```bash
+# From project root
+./scripts/train_all_transformers.sh
+
+# With custom parameters
+MAX_SEQ_LENGTH=128 NUM_EPOCHS=2 ./scripts/train_all_transformers.sh
+```
+
+**What it trains:**
+1. DistilBERT-base-uncased
+2. BERT-base-uncased
+3. RoBERTa-base
+4. DeBERTa-v3-base
+
+**Time estimate:**
+- CPU/MPS: ~6-8 hours total
+- GPU (g4dn.xlarge): ~1.5-2 hours total
+
+**Output:** Results for each model in `results/transformer/<model-name>/`
+
+---
+
+### 2. `aws_ec2_setup.sh`
 
 **Purpose:** Automated environment setup on a fresh EC2 instance
 
@@ -29,34 +56,6 @@ chmod +x aws_ec2_setup.sh
 - Fresh Ubuntu or Deep Learning AMI instance
 - Internet connectivity
 - Git repository URL (update placeholder in script)
-
----
-
-### 2. `aws_sync_data.sh`
-
-**Purpose:** Sync processed data between local machine and EC2
-
-**Usage:**
-
-Upload (local → EC2):
-```bash
-./scripts/aws_sync_data.sh upload ubuntu@54.123.45.67 ~/.ssh/my-key.pem
-```
-
-Download (EC2 → local):
-```bash
-./scripts/aws_sync_data.sh download ubuntu@54.123.45.67 ~/.ssh/my-key.pem
-```
-
-**Arguments:**
-1. Direction: `upload` or `download`
-2. EC2 host: `ubuntu@<PUBLIC_IP>`
-3. SSH key path: Path to `.pem` file
-
-**What it syncs:**
-- `data/processed/` directory (train/val/test JSONL files + manifest)
-
-**Note:** Run this from your **local machine**, not on EC2.
 
 ---
 
@@ -99,21 +98,27 @@ chmod +x aws_ec2_setup.sh
 ./aws_ec2_setup.sh
 ```
 
-### 2. Upload Data
+### 2. Clone Repository
 
-```bash
-# On local machine
-cd /path/to/nlp-multitype-proj
-./scripts/aws_sync_data.sh upload ubuntu@<EC2_IP> ~/.ssh/my-key.pem
-```
+**Note:** Processed data is included in the repository, so no separate data upload is needed.
 
 ### 3. Run Training
 
+**Option A: Train all models at once**
 ```bash
 # On EC2
 cd ~/projects/nlp-multitype-proj
 source venv/bin/activate
+./scripts/train_all_transformers.sh
+```
+
+**Option B: Train individual models**
+```bash
+# On EC2
+source venv/bin/activate
 python -m src.train_transformer --model_name distilbert-base-uncased
+python -m src.train_transformer --model_name bert-base-uncased
+# etc.
 ```
 
 ### 4. Download Results

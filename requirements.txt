@@ -53,6 +53,13 @@ tqdm>=4.65.0,<5.0.0
 requests>=2.28.0,<3.0.0
 
 # ============================================================
+# Additional Dependencies for Specific Models
+# ============================================================
+# Required for DeBERTa and some other models
+protobuf>=4.21.0,<6.0.0
+sentencepiece>=0.1.99,<1.0.0
+
+# ============================================================
 # AWS Integration (Optional - for AWS deployment)
 # ============================================================
 # Uncomment these when deploying to AWS:

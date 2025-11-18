@@ -54,9 +54,9 @@ nlp-multitype-proj/
 │   ├── project.yaml              # Project-level settings
 │   └── aws_config.yaml           # AWS S3/EC2 configuration
 │
-├── scripts/                      # ✅ AWS EC2 helper scripts
+├── scripts/                      # ✅ Helper scripts
+│   ├── train_all_transformers.sh # Train all transformer models
 │   ├── aws_ec2_setup.sh          # Automated EC2 environment setup
-│   ├── aws_sync_data.sh          # Sync data local ↔ EC2
 │   ├── aws_sync_results.sh       # Download results from EC2
 │   └── README.md
 │
@@ -141,19 +141,20 @@ python -m src.train_baseline
 
 **Output:** `results/baseline/` with metrics, confusion matrix, and model
 
-**Transformer Models:**
+**All Transformer Models (Recommended):**
 
 ```bash
-# DistilBERT (fastest)
+# Train all 4 models at once
+./scripts/train_all_transformers.sh
+```
+
+**Individual Transformer Models:**
+
+```bash
+# Train specific model
 python -m src.train_transformer --model_name distilbert-base-uncased
-
-# BERT-base
 python -m src.train_transformer --model_name bert-base-uncased
-
-# RoBERTa-base
 python -m src.train_transformer --model_name roberta-base
-
-# DeBERTa-v3-base
 python -m src.train_transformer --model_name microsoft/deberta-v3-base
 ```
 
@@ -161,57 +162,59 @@ python -m src.train_transformer --model_name microsoft/deberta-v3-base
 
 ---
 
-## Architecture Diagram
+## Pipeline Overview
 
-```
-┌──────────────┐
-│  Raw Data    │  MRPC, PAWS, HLPC (JSON/JSONL)
-│ (data/raw/)  │
-└──────┬───────┘
-       │
-       ↓
-┌──────────────────────────────────┐
-│     data_prep.py                 │
-│  • Parse families                │
-│  • Normalize text (Unicode NFKC)│
-│  • Build single-sentence samples │
-│  • Family-aware split (70/15/15)│
-│  • Validate (no leakage)         │
-└──────┬───────────────────────────┘
-       │
-       ↓
-┌──────────────────────────────────┐
-│  Processed JSONL                 │
-│  • train_4class.jsonl            │
-│  • val_4class.jsonl              │
-│  • test_4class.jsonl             │
-│  • manifest.json                 │
-└──────┬───────────────────────────┘
-       │
-       ├─────────────┬──────────────┐
-       ↓             ↓              ↓
-┌─────────────┐ ┌──────────┐ ┌────────────┐
-│  TF-IDF +   │ │ Trans-   │ │ Robustness │
-│  LogReg     │ │ formers  │ │ Analysis   │
-│  Baseline   │ │ (BERT,   │ │ (Future)   │
-│             │ │ RoBERTa, │ │            │
-│  Acc: 51%   │ │ DeBERTa) │ │            │
-│  F1:  51%   │ │          │ │            │
-│             │ │ Acc: 59% │ │            │
-│             │ │ F1:  58% │ │            │
-└─────────────┘ └──────────┘ └────────────┘
-       │             │              │
-       └──────┬──────┴──────────────┘
-              ↓
-       ┌─────────────────┐
-       │  Evaluation     │
-       │  • Macro-F1     │
-       │  • Accuracy     │
-       │  • Per-class F1 │
-       │  • Confusion    │
-       │  • Time/Size    │
-       └─────────────────┘
-```
+### 1. Data Preprocessing (`src/data_prep.py`)
+
+**Input:** Raw JSON/JSONL files from MRPC, PAWS, HLPC datasets  
+**Process:**
+- Parse family-based records (each family has type1-type4 variants)
+- Normalize text (Unicode NFKC, whitespace cleanup)
+- Build single-sentence classification samples
+- Perform family-aware split (70% train / 15% val / 15% test)
+- Validate data integrity (no leakage, valid labels)
+
+**Output:** 
+- `data/processed/train_4class.jsonl` (13,966 samples)
+- `data/processed/val_4class.jsonl` (2,996 samples)
+- `data/processed/test_4class.jsonl` (2,997 samples)
+- `data/processed/manifest.json` (statistics and metadata)
+
+### 2. Model Training
+
+**Baseline (TF-IDF + Logistic Regression):**
+- Command: `python -m src.train_baseline`
+- Features: TF-IDF with 1-2 grams, 20K max features
+- Model: Multinomial logistic regression
+- Performance: 51% accuracy, 51% Macro-F1
+- Training time: <1 second
+
+**Transformers (BERT family):**
+- Command: `python -m src.train_transformer --model_name <model>`
+- Supported: DistilBERT, BERT, RoBERTa, DeBERTa, ELECTRA
+- Configuration: 3 epochs, 256 max seq length, batch size 16
+- Performance: 58-70% Macro-F1 (model dependent)
+- Training time: 20-40 minutes per model on GPU
+
+**Batch training:**
+- Command: `./scripts/train_all_transformers.sh`
+- Trains all 4 transformer models sequentially
+- Total time: ~2 hours on GPU, ~6-8 hours on CPU
+
+### 3. Evaluation
+
+**Metrics computed for each model:**
+- Accuracy and Macro-F1 (primary)
+- Per-class F1 scores (T1, T2, T3, T4)
+- Confusion matrix (4x4)
+- Training time and model size
+- Throughput (samples/sec)
+
+**Output artifacts per model:**
+- `metrics.json` — Structured metrics
+- `report.txt` — Human-readable summary
+- `confusion_matrix.png` — Visualization
+- `model/` — Full HuggingFace model (for transformers)
 
 ---
 
@@ -333,23 +336,6 @@ Each line is a **single classification sample**:
 
 ---
 
-## Validation Checks
-
-### Critical (Fail Build)
-
-✅ All labels in {T1, T2, T3, T4} or {0, 1, 2, 3}  
-✅ All texts non-empty and ≤ 4000 characters  
-✅ No `family_id` overlap between splits (leakage check)  
-✅ All required columns present  
-
-### Warning (Log Only)
-
-⚠️ Class imbalance (any class < 10%)  
-⚠️ Text length outliers (< 10 or > 2000 chars)  
-⚠️ Duplicate texts detected  
-
----
-
 ## Dependencies
 
 ### Core Libraries
@@ -369,7 +355,7 @@ See [`requirements.txt`](requirements.txt) for full list.
 
 ## AWS EC2 Deployment
 
-This project is **AWS EC2-ready** for GPU training on cloud infrastructure.
+This project is **AWS EC2-ready** for GPU-accelerated training.
 
 ### Quick Start (EC2)
 
@@ -378,53 +364,36 @@ This project is **AWS EC2-ready** for GPU training on cloud infrastructure.
 # 2. SSH into instance
 ssh -i ~/.ssh/my-key.pem ubuntu@<EC2_IP>
 
-# 3. Run automated setup
+# 3. Clone and setup
+git clone https://github.com/<USER>/nlp-multitype-proj.git
+cd nlp-multitype-proj
 ./scripts/aws_ec2_setup.sh
 
-# 4. Upload data from local
-./scripts/aws_sync_data.sh upload ubuntu@<EC2_IP> ~/.ssh/my-key.pem
+# 4. Train all models
+./scripts/train_all_transformers.sh
 
-# 5. Train models
-python -m src.train_transformer --model_name bert-base-uncased
-
-# 6. Download results to local
+# 5. Download results (from local machine)
 ./scripts/aws_sync_results.sh ubuntu@<EC2_IP> ~/.ssh/my-key.pem
+
+# 6. Stop instance
+aws ec2 stop-instances --instance-ids i-xxxxx
 ```
 
-### AWS Helper Scripts
+### Available Scripts
 
-- **`scripts/aws_ec2_setup.sh`** — Automated environment setup on EC2
-- **`scripts/aws_sync_data.sh`** — Sync data between local and EC2
+- **`scripts/train_all_transformers.sh`** — Train all 4 transformer models
+- **`scripts/aws_ec2_setup.sh`** — Automated EC2 environment setup  
 - **`scripts/aws_sync_results.sh`** — Download results from EC2
 
 ### Cost Estimate
 
-**Running all 4 transformer models on g4dn.xlarge:**
-- **Time:** ~2 hours
-- **Cost (Spot):** ~$0.32
-- **Cost (On-Demand):** ~$1.05
+**Training all 4 transformer models on g4dn.xlarge:**
+- Time: ~2 hours
+- Cost (Spot): **~$0.32**
+- Cost (On-Demand): **~$1.05**
 
 See [`docs/RUNBOOK_AWS_EC2.md`](docs/RUNBOOK_AWS_EC2.md) for complete EC2 workflow guide.
 
----
-
-## Contributing
-
-### Development Workflow
-
-1. Create a feature branch: `git checkout -b feature/new-feature`
-2. Make changes and test locally
-3. Run data validation: `python src/data_prep.py`
-4. Run EDA: `jupyter notebook notebooks/00_eda.ipynb`
-5. Commit with clear message: `git commit -m "Add feature X"`
-6. Push and create pull request
-
-### Code Standards
-
-- Follow PEP 8 for Python
-- Use type hints where reasonable
-- Add docstrings to public functions
-- Update tests if applicable
 
 ---
 
@@ -459,55 +428,12 @@ See [`docs/RUNBOOK_AWS_EC2.md`](docs/RUNBOOK_AWS_EC2.md) for complete EC2 workfl
 
 ---
 
-## Troubleshooting
-
-### Common Issues
-
-**Issue:** `ModuleNotFoundError: No module named 'src'`  
-**Solution:** Run from project root: `python -m src.data_prep`
-
-**Issue:** Family leakage detected  
-**Solution:** Check raw data for duplicate `idx` within same `dataset_source`
-
-**Issue:** CUDA not available on EC2  
-**Solution:** Verify GPU instance type (g4dn.*, g5.*) and run `nvidia-smi`
-
-See [`docs/RUNBOOK_LOCAL.md#troubleshooting`](docs/RUNBOOK_LOCAL.md#troubleshooting) and [`docs/RUNBOOK_AWS_EC2.md#troubleshooting`](docs/RUNBOOK_AWS_EC2.md#troubleshooting) for more.
-
----
-
 ## License
 
-[Specify license here]
+MIT
 
 ---
 
-## Contact
 
-[Add contact information or team details]
-
----
-
-## Changelog
-
-### Version 2.0.0 (2025-11-13) - AWS EC2-Ready
-
-- ✅ Complete data preprocessing pipeline (JSONL format)
-- ✅ Family-aware splitting with validation
-- ✅ Full EDA notebook with leakage checks and report generation
-- ✅ Baseline training (TF-IDF + Logistic Regression)
-- ✅ Transformer training script (DistilBERT, BERT, RoBERTa, DeBERTa, ELECTRA)
-- ✅ AWS EC2 integration (automated setup, data sync, result retrieval)
-- ✅ Comprehensive documentation (5 docs + script READMEs)
-
-### Version 1.0.0 (2025-11-13) - Initial Skeleton
-
-- Project structure and planning artifacts
-- Config files and schemas defined
-- Baseline documentation
-
----
-
-**Status:** ✅ **PRODUCTION READY** — Complete implementation with local + AWS EC2 support!
 
 

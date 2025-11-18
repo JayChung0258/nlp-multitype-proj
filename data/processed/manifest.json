@@ -1,0 +1,52 @@
+{
+  "created_at_utc": "2025-11-13T22:39:11.666585Z",
+  "seed": 42,
+  "split_ratios": {
+    "train": 0.7,
+    "val": 0.15,
+    "test": 0.15
+  },
+  "total_rows": 19959,
+  "total_families": 5000,
+  "rows_per_split": {
+    "train": 13966,
+    "val": 2996,
+    "test": 2997
+  },
+  "rows_per_label_per_split": {
+    "train": {
+      "T1": 3500,
+      "T2": 3498,
+      "T3": 3468,
+      "T4": 3500
+    },
+    "val": {
+      "T1": 750,
+      "T2": 749,
+      "T3": 747,
+      "T4": 750
+    },
+    "test": {
+      "T1": 750,
+      "T2": 750,
+      "T3": 747,
+      "T4": 750
+    }
+  },
+  "avg_len_char_per_split": {
+    "train": 145.19,
+    "val": 140.49,
+    "test": 149.42
+  },
+  "avg_len_word_per_split": {
+    "train": 24.53,
+    "val": 23.71,
+    "test": 25.26
+  },
+  "num_dropped_rows": {
+    "missing_family_id": 0,
+    "empty_text": 0,
+    "too_long": 3
+  },
+  "families_hash_sha1": "bf34d055dd9819172fbb4f06f026e86b3de5fce1"
+}

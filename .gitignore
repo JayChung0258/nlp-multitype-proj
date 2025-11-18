@@ -4,8 +4,8 @@
 # Data Files
 # ============================================================
 # Processed data (can be regenerated)
-data/processed/*.jsonl
-data/processed/manifest.json
+# data/processed/*.jsonl
+# data/processed/manifest.json
 
 # Large raw data files (optional - commit if small enough)
 # data/raw/*.json

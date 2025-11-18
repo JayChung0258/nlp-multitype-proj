@@ -1,61 +1,98 @@
 # Scripts Directory
 
-This directory contains helper scripts for AWS EC2 workflows.
+Helper scripts for local and AWS EC2 workflows.
 
 ---
 
 ## Available Scripts
 
-### 1. `train_all_transformers.sh`
+### 1. `train_all_transformers.sh` ⭐
 
-**Purpose:** Train all transformer models sequentially
+**Purpose:** Train all transformer models sequentially with unified configuration
 
 **Usage:**
 ```bash
-# From project root
+# From project root (local or EC2)
 ./scripts/train_all_transformers.sh
-
-# With custom parameters
-MAX_SEQ_LENGTH=128 NUM_EPOCHS=2 ./scripts/train_all_transformers.sh
 ```
 
-**What it trains:**
-1. DistilBERT-base-uncased
-2. BERT-base-uncased
-3. RoBERTa-base
-4. DeBERTa-v3-base
+**Trains these models:**
+1. DistilBERT-base-uncased (~20 min on GPU)
+2. BERT-base-uncased (~30 min on GPU)
+3. RoBERTa-base (~30 min on GPU)
+4. DeBERTa-v3-base (~40 min on GPU)
 
-**Time estimate:**
-- CPU/MPS: ~6-8 hours total
-- GPU (g4dn.xlarge): ~1.5-2 hours total
+**Default configuration:**
+- Max sequence length: 256
+- Training epochs: 3
+- Train batch size: 16
+- Eval batch size: 32
+- Learning rate: 2e-5
+- Weight decay: 0.01
+- Warmup ratio: 0.1
+- Random seed: 42
 
-**Output:** Results for each model in `results/transformer/<model-name>/`
+**Customize via environment variables:**
+```bash
+# Faster training (fewer epochs, smaller sequences)
+MAX_SEQ_LENGTH=128 NUM_EPOCHS=2 ./scripts/train_all_transformers.sh
+
+# Smaller batch size for limited memory
+TRAIN_BATCH_SIZE=8 EVAL_BATCH_SIZE=16 ./scripts/train_all_transformers.sh
+```
+
+**Estimated time:**
+- **On CPU/MPS:** ~6-8 hours total
+- **On GPU (g4dn.xlarge):** ~1.5-2 hours total
+- **On GPU (g5.xlarge):** ~1 hour total
+
+**Output:** Each model's results saved to `results/transformer/<model-slug>/`
+
+**Features:**
+- Auto-activates virtual environment
+- Shows progress for each model
+- Reports total time at completion
+- Safe to run unattended (exits on error)
 
 ---
 
 ### 2. `aws_ec2_setup.sh`
 
-**Purpose:** Automated environment setup on a fresh EC2 instance
+**Purpose:** Automated environment setup on fresh EC2 instance
 
 **Usage:**
 ```bash
-# On EC2 instance
+# Method 1: Run directly on EC2
+cd ~
+git clone https://github.com/<YOUR_USER>/nlp-multitype-proj.git
+cd nlp-multitype-proj
+chmod +x scripts/aws_ec2_setup.sh
+./scripts/aws_ec2_setup.sh
+
+# Method 2: Download and run
+wget https://raw.githubusercontent.com/<USER>/nlp-multitype-proj/main/scripts/aws_ec2_setup.sh
 chmod +x aws_ec2_setup.sh
 ./aws_ec2_setup.sh
 ```
 
 **What it does:**
-- Installs system dependencies (git, python3-venv, pip)
-- Creates project directory (`~/projects/`)
-- Clones GitHub repository
-- Creates Python virtual environment
-- Installs all Python packages
-- Verifies CUDA availability
+1. Updates system packages (`apt-get update`)
+2. Installs git, python3-venv, python3-pip
+3. Creates project directory (`~/projects/`)
+4. Clones GitHub repository
+5. Creates Python virtual environment
+6. Installs all dependencies from `requirements.txt`
+7. Verifies CUDA availability
 
 **Requirements:**
-- Fresh Ubuntu or Deep Learning AMI instance
+- Ubuntu 20.04+ or AWS Deep Learning AMI
 - Internet connectivity
-- Git repository URL (update placeholder in script)
+- **Update `<GITHUB_REPO_URL>` placeholder** in script before running
+
+**Output:**
+- Repository cloned to `~/projects/nlp-multitype-proj/`
+- Virtual environment ready at `~/projects/nlp-multitype-proj/venv/`
+- All Python packages installed
 
 ---
 
@@ -65,77 +102,168 @@ chmod +x aws_ec2_setup.sh
 
 **Usage:**
 ```bash
-./scripts/aws_sync_results.sh ubuntu@54.123.45.67 ~/.ssh/my-key.pem
+# From local machine (project root)
+./scripts/aws_sync_results.sh ubuntu@<EC2_PUBLIC_IP> ~/.ssh/my-key.pem
 ```
 
 **Arguments:**
-1. EC2 host: `ubuntu@<PUBLIC_IP>`
-2. SSH key path: Path to `.pem` file
+1. EC2 host: `ubuntu@<EC2_PUBLIC_IP>` (replace with your instance IP)
+2. SSH key: Path to `.pem` file
 
 **What it downloads:**
 - `results/baseline/` — Baseline model results
-- `results/transformer/` — Transformer model results
-- `reports/` — Generated reports (if any)
+- `results/transformer/` — All transformer model results
+- `reports/` — Generated EDA reports (if any)
 
 **Output location:** `./results_from_ec2/`
 
-**Note:** Run this from your **local machine**, not on EC2.
-
----
-
-## Quick Start: EC2 Workflow
-
-### 1. Setup EC2 (One-time)
-
+**Example:**
 ```bash
-# Launch g4dn.xlarge instance via AWS Console
-# SSH into instance
-ssh -i ~/.ssh/my-key.pem ubuntu@<EC2_IP>
+./scripts/aws_sync_results.sh ubuntu@54.123.45.67 ~/.ssh/my-ec2-key.pem
 
-# Run setup script
-wget https://raw.githubusercontent.com/<USER>/nlp-multitype-proj/main/scripts/aws_ec2_setup.sh
-chmod +x aws_ec2_setup.sh
-./aws_ec2_setup.sh
-```
-
-### 2. Clone Repository
-
-**Note:** Processed data is included in the repository, so no separate data upload is needed.
-
-### 3. Run Training
-
-**Option A: Train all models at once**
-```bash
-# On EC2
-cd ~/projects/nlp-multitype-proj
-source venv/bin/activate
-./scripts/train_all_transformers.sh
-```
-
-**Option B: Train individual models**
-```bash
-# On EC2
-source venv/bin/activate
-python -m src.train_transformer --model_name distilbert-base-uncased
-python -m src.train_transformer --model_name bert-base-uncased
+# Results will be in:
+# results_from_ec2/results/transformer/bert-base-uncased/
+# results_from_ec2/results/transformer/roberta-base/
 # etc.
 ```
 
-### 4. Download Results
+**Note:** 
+- Run from your **local machine**, not on EC2
+- Automatically sets correct SSH key permissions (`chmod 400`)
+
+---
+
+## Complete Workflow
+
+### Local Training (No AWS)
 
 ```bash
-# On local machine
-./scripts/aws_sync_results.sh ubuntu@<EC2_IP> ~/.ssh/my-key.pem
+# 1. Setup
+git clone <repo-url>
+cd nlp-multitype-proj
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 2. Prepare data (if needed)
+python -m src.data_prep
+
+# 3. Run EDA
+jupyter notebook notebooks/00_eda.ipynb
+
+# 4. Train baseline
+python -m src.train_baseline
+
+# 5. Train all transformers
+./scripts/train_all_transformers.sh
 ```
 
-### 5. Stop Instance
+---
+
+### AWS EC2 GPU Training
+
+#### On Local Machine (Preparation)
 
 ```bash
-# Via AWS CLI
-aws ec2 stop-instances --instance-ids i-xxxxx
+# 1. Launch EC2 instance via AWS Console
+#    - Type: g4dn.xlarge (GPU)
+#    - AMI: Deep Learning AMI (Ubuntu)
+#    - Storage: 100GB
+#    - Security group: Allow SSH from your IP
+#    - Download .pem key
 
-# Or via Console
-# EC2 → Instances → Select instance → Instance state → Stop
+# 2. Set SSH key permissions
+chmod 400 ~/.ssh/my-ec2-key.pem
+
+# 3. Update GitHub repo URL in scripts/aws_ec2_setup.sh
+# (Replace <GITHUB_REPO_URL> with your actual repo)
+```
+
+#### On EC2 Instance
+
+```bash
+# 1. SSH into EC2
+ssh -i ~/.ssh/my-ec2-key.pem ubuntu@<EC2_PUBLIC_IP>
+
+# 2. Clone and setup (if not using setup script)
+git clone https://github.com/<YOUR_USER>/nlp-multitype-proj.git
+cd nlp-multitype-proj
+
+# OR run automated setup
+./scripts/aws_ec2_setup.sh
+
+# 3. Activate environment
+source venv/bin/activate
+
+# 4. Verify CUDA
+python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
+# Should print: CUDA: True
+
+# 5. Optional: Use tmux to avoid disconnection
+tmux new -s training
+
+# 6. Train all models
+./scripts/train_all_transformers.sh
+
+# 7. Detach from tmux (Ctrl+B, then D) and disconnect
+# Training continues in background
+```
+
+#### Back on Local Machine
+
+```bash
+# 1. Download results
+./scripts/aws_sync_results.sh ubuntu@<EC2_PUBLIC_IP> ~/.ssh/my-ec2-key.pem
+
+# 2. Results are in: ./results_from_ec2/results/
+
+# 3. Stop or terminate EC2 instance
+aws ec2 stop-instances --instance-ids i-xxxxxxxxxxxxx
+# or
+aws ec2 terminate-instances --instance-ids i-xxxxxxxxxxxxx
+```
+
+---
+
+## Script Features
+
+### Safety
+- ✅ Exits on error (`set -e`)
+- ✅ Idempotent (safe to run multiple times)
+- ✅ Clear error messages
+- ✅ Validates prerequisites
+
+### Usability
+- ✅ Detailed progress messages
+- ✅ Time tracking per model and total
+- ✅ Environment variable configuration
+- ✅ Auto-activates virtual environment
+- ✅ Comprehensive usage instructions in comments
+
+### Portability
+- ✅ Works on Ubuntu, macOS, WSL
+- ✅ No hardcoded paths or IPs
+- ✅ Uses placeholders for user-specific values
+
+---
+
+## Configuration via Environment Variables
+
+All scripts support customization without editing:
+
+**Training configuration:**
+```bash
+MAX_SEQ_LENGTH=128        # Default: 256
+NUM_EPOCHS=5              # Default: 3
+TRAIN_BATCH_SIZE=8        # Default: 16
+EVAL_BATCH_SIZE=16        # Default: 32
+LEARNING_RATE=3e-5        # Default: 2e-5
+WEIGHT_DECAY=0.02         # Default: 0.01
+WARMUP_RATIO=0.15         # Default: 0.1
+SEED=123                  # Default: 42
+
+# Example: Quick test run
+MAX_SEQ_LENGTH=128 NUM_EPOCHS=1 ./scripts/train_all_transformers.sh
 ```
 
 ---
@@ -143,69 +271,78 @@ aws ec2 stop-instances --instance-ids i-xxxxx
 ## Prerequisites
 
 ### Local Machine
-
-- Bash shell (Linux, macOS, WSL on Windows)
-- SSH client
+- Bash shell
+- SSH client (for EC2)
 - Git
-- Processed data in `data/processed/`
+- Python 3.8+
 
-### AWS
-
-- EC2 instance (GPU recommended: g4dn.xlarge)
-- SSH key pair (.pem file)
-- Security group allowing SSH from your IP
-
----
-
-## Security Notes
-
-- **Never commit `.pem` files** to Git (already in `.gitignore`)
-- **Set correct permissions:** `chmod 400 ~/.ssh/my-key.pem`
-- **Replace placeholders:** Update `<GITHUB_REPO_URL>` in `aws_ec2_setup.sh`
-- **Restrict SSH:** Configure security group to allow SSH only from your IP
+### EC2 Instance (for GPU training)
+- Instance type: `g4dn.xlarge` or better
+- AMI: Deep Learning AMI (Ubuntu) or Ubuntu 20.04+
+- Storage: 100GB minimum
+- Security group: Allow SSH (port 22) from your IP
+- SSH key pair (`.pem` file)
 
 ---
 
 ## Troubleshooting
 
-**Script fails with "Permission denied":**
+### Script permission denied
 ```bash
 chmod +x scripts/*.sh
 ```
 
-**SCP fails with "Permission denied (publickey)":**
-- Check key permissions: `chmod 400 ~/.ssh/my-key.pem`
-- Verify correct username (usually `ubuntu` for Ubuntu, `ec2-user` for Amazon Linux)
-- Check EC2 security group allows SSH from your IP
+### Virtual environment not found (train_all_transformers.sh)
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-**Git clone fails with authentication error:**
-- For public repos: Use HTTPS URL
-- For private repos: Set up SSH key or personal access token
+### Missing dependencies for DeBERTa
+```bash
+pip install protobuf sentencepiece
+```
+*Already included in `requirements.txt` v2.0+*
+
+### Out of memory during training
+```bash
+# Reduce batch size
+TRAIN_BATCH_SIZE=8 EVAL_BATCH_SIZE=16 ./scripts/train_all_transformers.sh
+
+# Or reduce sequence length
+MAX_SEQ_LENGTH=128 ./scripts/train_all_transformers.sh
+```
+
+### SSH connection to EC2 fails
+```bash
+# Check security group allows SSH from your IP
+# Verify key permissions
+chmod 400 ~/.ssh/my-ec2-key.pem
+
+# Test connection
+ssh -i ~/.ssh/my-ec2-key.pem ubuntu@<EC2_IP>
+```
 
 ---
 
-## Advanced: S3 Integration
+## Notes
 
-For very large datasets or multi-user access, use S3 instead of SCP:
+**Processed data is in the repo:**
+- Data sync scripts are not needed
+- Simply clone the repo to get everything
+- Approximately 5.7 MB of processed JSONL files
 
-**Upload to S3 (on local):**
-```bash
-aws s3 sync data/processed/ s3://my-bucket/data/processed/
-```
+**Model weights NOT in repo:**
+- Large model files (`.safetensors`, `.bin`) are `.gitignore`d
+- Only metrics, reports, and plots are tracked
+- Download trained models from EC2 using `aws_sync_results.sh`
 
-**Download on EC2:**
-```bash
-aws s3 sync s3://my-bucket/data/processed/ data/processed/
-```
-
-**Upload results to S3 (on EC2):**
-```bash
-aws s3 sync results/ s3://my-bucket/results/
-```
-
-See `configs/aws_config.yaml` for S3 configuration.
+**For very large datasets:**
+- Consider using S3 instead of including data in repo
+- See `src/aws_utils.py` for S3 helper stubs
+- Uncomment S3-related lines in `requirements.txt` if needed
 
 ---
 
 *Last updated: 2025-11-13*
-

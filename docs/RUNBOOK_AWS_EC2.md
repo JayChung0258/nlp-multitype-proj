@@ -2,20 +2,50 @@
 
 **NLP Multi-Type Classification Project**
 
-This runbook provides step-by-step instructions for running experiments on AWS EC2 GPU instances.
+Complete step-by-step guide for running GPU-accelerated transformer training on AWS EC2.
 
 ---
 
 ## Table of Contents
 
-1. [Prerequisites](#prerequisites)
-2. [EC2 Instance Setup](#ec2-instance-setup)
-3. [First-Time Environment Setup](#first-time-environment-setup)
-4. [Data Transfer](#data-transfer)
+1. [Overview](#overview)
+2. [Prerequisites](#prerequisites)
+3. [EC2 Instance Setup](#ec2-instance-setup)
+4. [Environment Setup](#environment-setup)
 5. [Running Experiments](#running-experiments)
 6. [Retrieving Results](#retrieving-results)
 7. [Cost Management](#cost-management)
 8. [Troubleshooting](#troubleshooting)
+
+---
+
+## Overview
+
+### Why Use AWS EC2?
+
+- **Speed:** GPU training is 10-20x faster than CPU
+- **Cost-effective:** Pay only for compute time (~$0.32 for all models on Spot)
+- **Scalability:** Run multiple experiments in parallel
+- **Flexibility:** Full control over environment
+
+### Workflow Summary
+
+```
+Local Machine                    AWS EC2 (GPU)                Local Machine
+─────────────                    ─────────────                ─────────────
+                                                              
+1. Push code     ───────────────> 2. Clone repo
+   to GitHub                         Setup environment
+                                     
+                                  3. Train models
+                                     (1.5-2 hours)
+                                     
+4. Download      <─────────────── 5. Results ready
+   results                           
+   
+5. Analyze                        6. Stop/terminate
+   Compare                           instance
+```
 
 ---
 
@@ -24,12 +54,11 @@ This runbook provides step-by-step instructions for running experiments on AWS E
 ### Local Machine
 
 - ✅ AWS account with EC2 access
-- ✅ AWS CLI installed (optional but recommended)
+- ✅ GitHub repository (code pushed)
 - ✅ SSH client
-- ✅ GitHub repository access
-- ✅ Processed data ready in `data/processed/`
+- ✅ AWS CLI (optional but recommended)
 
-### Knowledge Required
+### Knowledge
 
 - Basic AWS EC2 concepts
 - SSH and terminal usage
@@ -39,661 +68,518 @@ This runbook provides step-by-step instructions for running experiments on AWS E
 
 ## EC2 Instance Setup
 
-### Step 1: Launch EC2 Instance
+### Recommended Instance Types
 
-**Recommended Instance Type:**
-- **For DistilBERT, BERT:** `g4dn.xlarge` (1x T4 GPU, 4 vCPUs, 16GB RAM) - ~$0.50/hour
-- **For larger models:** `g4dn.2xlarge` (1x T4 GPU, 8 vCPUs, 32GB RAM) - ~$0.75/hour
-- **For multiple parallel runs:** `g5.xlarge` (1x A10G GPU) - ~$1.00/hour
+| Instance | GPU | vCPUs | RAM | Cost/hr (On-Demand) | Cost/hr (Spot) | Use Case |
+|----------|-----|-------|-----|---------------------|----------------|----------|
+| **g4dn.xlarge** | 1x T4 | 4 | 16GB | $0.526 | ~$0.16 | **Recommended** |
+| g4dn.2xlarge | 1x T4 | 8 | 32GB | $0.752 | ~$0.23 | Larger batch sizes |
+| g5.xlarge | 1x A10G | 4 | 16GB | $1.006 | ~$0.30 | Faster training |
+| g5.2xlarge | 1x A10G | 8 | 32GB | $1.212 | ~$0.36 | Production workloads |
 
-**Launch via AWS Console:**
+**Recommendation:** Start with **g4dn.xlarge** (best cost/performance ratio)
 
-1. Go to EC2 Console → **Launch Instance**
+### Step-by-Step Instance Launch
 
-2. **Name:** `nlp-multitype-training`
+#### 1. Open EC2 Console
 
-3. **AMI:** Select **Deep Learning AMI (Ubuntu 20.04)**
-   - Search for: "Deep Learning AMI GPU PyTorch"
-   - This comes with CUDA, PyTorch, and other ML tools pre-installed
+Go to: AWS Console → EC2 → **Launch Instance**
 
-4. **Instance type:** Select `g4dn.xlarge` or `g4dn.2xlarge`
+#### 2. Configure Instance
 
-5. **Key pair:**
-   - Create new or select existing
-   - **Download the `.pem` file** and save it securely (you'll need this for SSH)
+**Name and tags:**
+- Name: `nlp-multitype-training`
 
-6. **Network settings:**
-   - Create or select security group with:
-     - **SSH (port 22)** allowed from **"My IP"** (for security)
+**Application and OS Images (AMI):**
+- Click **Browse more AMIs**
+- Search for: "Deep Learning AMI GPU PyTorch"
+- Select: **Deep Learning AMI GPU PyTorch 2.0 (Ubuntu 20.04)**
+- This AMI includes CUDA, PyTorch, and NVIDIA drivers pre-installed
 
-7. **Configure storage:**
-   - **Size:** 100 GB (sufficient for models and data)
-   - **Type:** gp3 (better performance than gp2)
+**Instance type:**
+- Select: **g4dn.xlarge**
 
-8. Click **Launch Instance**
+**Key pair:**
+- Create new or select existing key pair
+- **Download the `.pem` file** if creating new
+- Save it securely (you'll need it for SSH)
 
-9. Wait for instance state to become **Running** (~1-2 minutes)
+**Network settings:**
+- Click **Edit**
+- **Create security group** or select existing
+- Ensure **SSH (port 22)** is allowed
+- **Source:** Select **"My IP"** (for security)
 
-10. **Note the Public IPv4 address** (you'll need this for SSH)
+**Configure storage:**
+- Size: **100 GiB** (sufficient for models and data)
+- Volume type: **gp3** (better performance than gp2)
+- **Do not** delete on termination (if you want to preserve data)
 
-### Step 2: Configure SSH Key
+**Advanced details (optional but recommended):**
+- Check **"Request Spot instances"** for 70-90% cost savings
+- Leave max price at default (on-demand price)
 
-On your local machine:
+#### 3. Launch
 
-```bash
-# Move key to secure location
-mv ~/Downloads/my-ec2-key.pem ~/.ssh/
-
-# Set correct permissions (required for SSH)
-chmod 400 ~/.ssh/my-ec2-key.pem
-```
-
-### Step 3: Connect to EC2
-
-```bash
-# SSH into your instance
-ssh -i ~/.ssh/my-ec2-key.pem ubuntu@<EC2_PUBLIC_IP>
-
-# Example:
-ssh -i ~/.ssh/my-ec2-key.pem ubuntu@54.123.45.67
-```
-
-**Note:** If using Deep Learning AMI, the username is `ubuntu`. For Amazon Linux, use `ec2-user`.
+- Review settings
+- Click **Launch instance**
+- Wait for state to become **Running** (~1-2 minutes)
+- **Copy the Public IPv4 address**
 
 ---
 
-## First-Time Environment Setup
+## Environment Setup
 
 ### Option A: Automated Setup (Recommended)
 
-After SSH'ing into EC2, run the setup script:
+#### Step 1: Update Script with Your GitHub URL
+
+Before running, update `scripts/aws_ec2_setup.sh`:
 
 ```bash
-# Download and run setup script
-wget https://raw.githubusercontent.com/<YOUR_USERNAME>/nlp-multitype-proj/main/scripts/aws_ec2_setup.sh
-
-chmod +x aws_ec2_setup.sh
-./aws_ec2_setup.sh
+# Open the file and replace:
+# GITHUB_REPO_URL="<GITHUB_REPO_URL>"
+# 
+# With your actual URL:
+# GITHUB_REPO_URL="https://github.com/yourusername/nlp-multitype-proj.git"
 ```
 
-This will:
-1. Install system dependencies
-2. Clone the repository
-3. Create virtual environment
-4. Install Python packages
-5. Verify CUDA availability
-
-### Option B: Manual Setup
+#### Step 2: Secure SSH Key
 
 ```bash
-# Update system
-sudo apt-get update
-sudo apt-get install -y git python3-venv python3-pip
+# On local machine
+mv ~/Downloads/my-ec2-key.pem ~/.ssh/
+chmod 400 ~/.ssh/my-ec2-key.pem
+```
 
-# Create project directory
-mkdir -p ~/projects
-cd ~/projects
+#### Step 3: Connect and Run Setup
 
-# Clone repository (replace with your GitHub URL)
-git clone https://github.com/<YOUR_USERNAME>/nlp-multitype-proj.git
-cd nlp-multitype-proj
+```bash
+# SSH into EC2
+ssh -i ~/.ssh/my-ec2-key.pem ubuntu@<EC2_PUBLIC_IP>
 
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
+# Download and run setup script
+wget https://raw.githubusercontent.com/<YOUR_USER>/nlp-multitype-proj/main/scripts/aws_ec2_setup.sh
+chmod +x aws_ec2_setup.sh
+./aws_ec2_setup.sh
 
-# Upgrade pip
-pip install --upgrade pip
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Verify CUDA
-python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
+# OR if you already cloned the repo manually:
+cd ~/projects/nlp-multitype-proj
+./scripts/aws_ec2_setup.sh
 ```
 
 **Expected output:**
 ```
+======================================================================
+Setup Complete!
+======================================================================
+Project location: /home/ubuntu/projects/nlp-multitype-proj
+...
 CUDA available: True
 ```
 
----
-
-## Data Transfer
-
-You have three options for getting data to EC2:
-
-### Option 1: SCP from Local (Recommended for Small Data)
-
-**On your local machine:**
+### Option B: Manual Setup
 
 ```bash
-# Navigate to project root
-cd /path/to/nlp-multitype-proj
+# SSH into EC2
+ssh -i ~/.ssh/my-ec2-key.pem ubuntu@<EC2_PUBLIC_IP>
 
-# Upload processed data to EC2
-./scripts/aws_sync_data.sh upload ubuntu@<EC2_PUBLIC_IP> ~/.ssh/my-ec2-key.pem
-```
+# Update system
+sudo apt-get update
+sudo apt-get install -y git python3-venv python3-pip
 
-**Expected time:** ~30 seconds to 2 minutes (depends on data size)
+# Clone repository
+mkdir -p ~/projects && cd ~/projects
+git clone https://github.com/<YOUR_USER>/nlp-multitype-proj.git
+cd nlp-multitype-proj
 
-### Option 2: Regenerate on EC2
-
-If you have raw data in the repo or can download it:
-
-```bash
-# On EC2
-cd ~/projects/nlp-multitype-proj
+# Setup Python environment
+python3 -m venv venv
 source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
 
-# Run data preprocessing
-python -m src.data_prep
+# Verify CUDA
+python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
+# Should print: CUDA: True
 
-# Verify output
+# Verify data
 ls -lh data/processed/
+# Should show train/val/test JSONL files
 ```
-
-### Option 3: Download from S3 (If Using S3)
-
-```bash
-# On EC2
-aws s3 sync s3://my-nlp-bucket/data/processed data/processed/
-```
-
-**Note:** Requires AWS CLI configured with credentials.
 
 ---
 
 ## Running Experiments
 
-### Activate Environment
+### Verify Environment
 
 ```bash
 cd ~/projects/nlp-multitype-proj
 source venv/bin/activate
+
+# Check data
+ls data/processed/
+# Should see: train_4class.jsonl, val_4class.jsonl, test_4class.jsonl, manifest.json
+
+# Check GPU
+nvidia-smi
+# Should show GPU information
 ```
 
-### Run Baseline Model
+### Train All Models (Recommended)
+
+Use tmux to avoid disconnection issues:
 
 ```bash
-python -m src.train_baseline
-```
+# Start tmux session
+tmux new -s training
 
-**Expected time:** ~1 second (CPU)
-
-### Run Transformer Models
-
-**DistilBERT (fastest):**
-```bash
-python -m src.train_transformer --model_name distilbert-base-uncased
-```
-
-**Expected time:** ~15-20 minutes on g4dn.xlarge
-
-**BERT-base:**
-```bash
-python -m src.train_transformer --model_name bert-base-uncased
-```
-
-**Expected time:** ~25-30 minutes on g4dn.xlarge
-
-**RoBERTa-base:**
-```bash
-python -m src.train_transformer --model_name roberta-base
-```
-
-**Expected time:** ~25-30 minutes on g4dn.xlarge
-
-**DeBERTa-v3-base:**
-```bash
-python -m src.train_transformer --model_name microsoft/deberta-v3-base
-```
-
-**Expected time:** ~30-40 minutes on g4dn.xlarge
-
-**ELECTRA-base (optional):**
-```bash
-python -m src.train_transformer --model_name google/electra-base-discriminator
-```
-
-### Run Multiple Models Sequentially
-
-Create a simple bash script on EC2:
-
-```bash
-# Create run_all_models.sh
-cat > run_all_models.sh << 'EOF'
-#!/bin/bash
-set -e
-
+# Activate environment
 source venv/bin/activate
 
-echo "Running all transformer models..."
+# Train all transformers
+./scripts/train_all_transformers.sh
 
+# Expected output:
+# ======================================================================
+# [1/4] Training: distilbert-base-uncased
+# ======================================================================
+# ...
+# [2/4] Training: bert-base-uncased
+# ...
+# etc.
+
+# Detach from tmux: Press Ctrl+B, then D
+# You can now safely disconnect from SSH
+
+# To reattach later:
+# tmux attach -t training
+```
+
+**Estimated time on g4dn.xlarge:**
+- DistilBERT: ~20 minutes
+- BERT: ~30 minutes
+- RoBERTa: ~30 minutes
+- DeBERTa: ~40 minutes
+- **Total: ~2 hours**
+
+### Train Individual Models
+
+```bash
+source venv/bin/activate
+
+# Train specific model
 python -m src.train_transformer --model_name distilbert-base-uncased
-python -m src.train_transformer --model_name bert-base-uncased
-python -m src.train_transformer --model_name roberta-base
-python -m src.train_transformer --model_name microsoft/deberta-v3-base
 
-echo "All models complete!"
-EOF
-
-chmod +x run_all_models.sh
-./run_all_models.sh
+# With custom settings
+python -m src.train_transformer \
+    --model_name bert-base-uncased \
+    --max_seq_length 128 \
+    --train_batch_size 8 \
+    --num_train_epochs 5
 ```
 
 ### Monitor Training
 
-**Option 1: Use tmux (recommended for long runs)**
-
+**Option 1: Attach to tmux**
 ```bash
-# Install tmux
-sudo apt-get install -y tmux
-
-# Start tmux session
-tmux new -s training
-
-# Run training inside tmux
-python -m src.train_transformer --model_name bert-base-uncased
-
-# Detach from session: Ctrl+B, then D
-# Reattach later: tmux attach -t training
+tmux attach -t training
 ```
 
-**Option 2: Use nohup**
-
+**Option 2: Check logs**
 ```bash
-nohup python -m src.train_transformer --model_name bert-base-uncased > training.log 2>&1 &
-
-# Check progress
+# If using nohup
 tail -f training.log
+
+# Check GPU usage
+watch -n 1 nvidia-smi
 ```
 
-**Option 3: Use screen**
-
+**Option 3: Check output files**
 ```bash
-screen -S training
-python -m src.train_transformer --model_name bert-base-uncased
-# Detach: Ctrl+A, then D
-# Reattach: screen -r training
+# List completed models
+ls -d results/transformer/*/
+
+# View latest metrics
+cat results/transformer/*/metrics.json | python3 -m json.tool | grep -A 2 "macro_f1_test"
 ```
 
 ---
 
 ## Retrieving Results
 
-### Download Results to Local Machine
+### Download from EC2 to Local
 
 **On your local machine:**
 
 ```bash
-# Navigate to project root
 cd /path/to/nlp-multitype-proj
 
 # Download all results
 ./scripts/aws_sync_results.sh ubuntu@<EC2_PUBLIC_IP> ~/.ssh/my-ec2-key.pem
 ```
 
-**Results will be in:** `./results_from_ec2/results/`
+**Results location:** `./results_from_ec2/results/`
 
-### Upload Results to S3 (Optional)
-
-**On EC2:**
+### View Results Locally
 
 ```bash
-# Upload all results
-aws s3 sync results/ s3://my-nlp-bucket/nlp-multitype/results/
+# Navigate to downloaded results
+cd results_from_ec2/results
 
-# Upload specific model
-aws s3 sync results/transformer/bert-base-uncased/ \
-    s3://my-nlp-bucket/nlp-multitype/results/transformer/bert-base-uncased/
+# View metrics for all models
+cat transformer/*/metrics.json | python3 -m json.tool | grep -E "(model_name|accuracy_test|macro_f1_test)" | head -20
+
+# View detailed reports
+cat transformer/distilbert-base-uncased/report.txt
+cat transformer/bert-base-uncased/report.txt
+cat transformer/roberta-base/report.txt
+cat transformer/microsoft-deberta-v3-base/report.txt
+
+# View confusion matrices
+open transformer/*/confusion_matrix.png  # macOS
+xdg-open transformer/*/confusion_matrix.png  # Linux
 ```
 
 ---
 
 ## Cost Management
 
-### Instance Costs (as of 2024)
+### Instance Costs (November 2024)
 
-| Instance Type | GPU | vCPUs | RAM | On-Demand | Spot (avg) |
-|---------------|-----|-------|-----|-----------|------------|
-| g4dn.xlarge | 1x T4 | 4 | 16GB | $0.526/hr | ~$0.16/hr |
-| g4dn.2xlarge | 1x T4 | 8 | 32GB | $0.752/hr | ~$0.23/hr |
-| g5.xlarge | 1x A10G | 4 | 16GB | $1.006/hr | ~$0.30/hr |
+| Instance | On-Demand | Spot (avg) | Savings |
+|----------|-----------|------------|---------|
+| g4dn.xlarge | $0.526/hr | $0.16/hr | 70% |
+| g4dn.2xlarge | $0.752/hr | $0.23/hr | 69% |
+| g5.xlarge | $1.006/hr | $0.30/hr | 70% |
 
-### Expected Costs for Full Training
+### Training Cost Calculator
 
-**Scenario:** Train 4 transformer models (DistilBERT, BERT, RoBERTa, DeBERTa)
+**Scenario:** Train 4 transformer models (3 epochs each)
 
-- **Time:** ~2 hours total on g4dn.xlarge
-- **Cost (On-Demand):** ~$1.05
-- **Cost (Spot):** ~$0.32
+| Instance | Time | On-Demand Cost | Spot Cost |
+|----------|------|----------------|-----------|
+| g4dn.xlarge | 2 hours | $1.05 | $0.32 |
+| g5.xlarge | 1 hour | $1.01 | $0.30 |
 
-### Best Practices
+### Cost Optimization Tips
 
-1. **Use Spot Instances** for 70-90% savings (see Spot section below)
+**1. Use Spot Instances (70-90% savings)**
 
-2. **Stop instance when not in use:**
-   ```bash
-   # From local
-   aws ec2 stop-instances --instance-ids <INSTANCE_ID>
-   ```
+When launching:
+- Check **"Request Spot instances"**
+- Set max price to on-demand price
+- For 2-hour jobs, interruption risk is minimal
 
-3. **Terminate when done:**
-   ```bash
-   aws ec2 terminate-instances --instance-ids <INSTANCE_ID>
-   ```
+**2. Stop vs Terminate**
 
-4. **Set up billing alerts:**
-   - Go to AWS Billing Dashboard
-   - Create budget alert for $50/month (or your threshold)
+**Stop** (pause instance):
+```bash
+aws ec2 stop-instances --instance-ids i-xxxxxxxxxxxxx
+```
+- Keeps EBS volume (~$10/month for 100GB)
+- Can resume later
+- Good for: Multi-day experiments with breaks
 
-### Stop vs Terminate
+**Terminate** (delete instance):
+```bash
+aws ec2 terminate-instances --instance-ids i-xxxxxxxxxxxxx
+```
+- Deletes everything (EBS volume too)
+- **Cost: $0** ongoing
+- Good for: One-time experiments
 
-- **Stop:** Hibernates instance, keeps EBS volume, can restart later
-  - Cost: ~$10/month for 100GB storage
-  - Use when: You'll resume experiments soon
+**3. Set Billing Alerts**
 
-- **Terminate:** Permanently deletes instance and attached volumes
-  - Cost: $0
-  - Use when: Experiments are complete and results are downloaded
+- Go to AWS Billing Dashboard
+- Create budget alert
+- Set threshold: $50/month (or your limit)
+- Get email when approaching limit
 
-### Using Spot Instances
+**4. Run Multiple Models in One Session**
 
-**Launch Spot Instance** (70-90% cheaper):
+✅ **Good:** Launch → Train all 4 models → Download results → Terminate  
+❌ **Bad:** Launch → Train 1 model → Terminate → Repeat 4 times
 
-1. In EC2 Console → Launch Instance
-2. Check **"Request Spot instances"**
-3. Set **max price** to on-demand price or leave default
-4. Continue with normal setup
+### Monitor Costs
 
-**Note:** Spot instances can be interrupted, but this is rare for short training runs (< 3 hours).
+```bash
+# Check current month's costs
+aws ce get-cost-and-usage \
+    --time-period Start=2025-11-01,End=2025-11-30 \
+    --granularity MONTHLY \
+    --metrics BlendedCost
+```
 
 ---
 
 ## Troubleshooting
 
-### Issue: SSH Connection Refused
+### CUDA Not Available
 
-**Cause:** Security group not configured correctly
-
-**Solution:**
-```bash
-# Check security group allows SSH from your IP
-aws ec2 describe-security-groups --group-ids <SG_ID>
-
-# Update security group to allow your IP
-aws ec2 authorize-security-group-ingress \
-    --group-id <SG_ID> \
-    --protocol tcp \
-    --port 22 \
-    --cidr <YOUR_IP>/32
+**Symptoms:**
+```python
+import torch
+print(torch.cuda.is_available())  # Returns False
 ```
 
-### Issue: CUDA Not Available
+**Solutions:**
 
-**Symptom:**
-```
-CUDA available: False
-```
+1. **Verify GPU instance type:**
+   ```bash
+   # Check instance metadata
+   curl http://169.254.169.254/latest/meta-data/instance-type
+   # Should return: g4dn.xlarge (or other GPU type)
+   ```
 
-**Solution:**
-1. Verify you selected a GPU instance type (g4dn.*, g5.*, p3.*, p4.*)
-2. Check NVIDIA driver:
+2. **Check NVIDIA driver:**
    ```bash
    nvidia-smi
+   # Should show GPU information
    ```
-3. If `nvidia-smi` fails, reinstall CUDA drivers:
+
+3. **If nvidia-smi fails:**
    ```bash
+   # Reinstall NVIDIA drivers
+   sudo apt-get update
    sudo apt-get install -y nvidia-driver-525
    sudo reboot
    ```
 
-### Issue: Out of Memory (OOM)
+### Out of Memory (OOM)
 
-**Symptom:**
+**Symptoms:**
 ```
-RuntimeError: CUDA out of memory
-```
-
-**Solution:**
-```bash
-# Reduce batch size
-python -m src.train_transformer \
-    --model_name bert-base-uncased \
-    --train_batch_size 8 \  # Reduced from 16
-    --eval_batch_size 16     # Reduced from 32
-
-# Or reduce sequence length
-python -m src.train_transformer \
-    --model_name bert-base-uncased \
-    --max_seq_length 128  # Reduced from 256
+RuntimeError: CUDA out of memory. Tried to allocate X.XX GiB
 ```
 
-### Issue: Instance Stops Unexpectedly (Spot)
+**Solutions:**
 
-**Cause:** Spot instance interrupted by AWS
-
-**Solution:**
-- Training will stop mid-way
-- Checkpoints are saved every epoch in `results/transformer/*/checkpoints/`
-- Can resume from checkpoint (requires code modification)
-- Or use On-Demand instances for critical runs
-
-### Issue: Slow Training
-
-**Possible causes:**
-
-1. **Using CPU instead of GPU:**
+1. **Reduce batch size:**
    ```bash
-   # Verify GPU is being used
+   TRAIN_BATCH_SIZE=8 EVAL_BATCH_SIZE=16 ./scripts/train_all_transformers.sh
+   ```
+
+2. **Reduce sequence length:**
+   ```bash
+   MAX_SEQ_LENGTH=128 ./scripts/train_all_transformers.sh
+   ```
+
+3. **Use larger instance:**
+   - Upgrade to `g4dn.2xlarge` (32GB RAM)
+
+### Training Stopped Unexpectedly
+
+**Cause:** SSH connection dropped or Spot instance interrupted
+
+**Prevention:**
+- Use `tmux` or `screen` to keep session alive
+- Checkpoints are saved every epoch (can resume manually)
+
+**Recovery:**
+```bash
+# SSH back in
+ssh -i ~/.ssh/my-ec2-key.pem ubuntu@<EC2_IP>
+
+# Reattach to tmux
+tmux attach -t training
+
+# Check what completed
+ls -d results/transformer/*/
+```
+
+### Slow Training
+
+**Issue:** Training taking much longer than expected
+
+**Checks:**
+
+1. **Verify GPU is being used:**
+   ```bash
    nvidia-smi
    # Should show python process using GPU memory
    ```
 
-2. **Not using mixed precision:**
-   - Already enabled automatically if CUDA is available (`fp16=True`)
-
-3. **Swap memory thrashing:**
-   ```bash
-   # Check memory usage
-   free -h
-   htop
+2. **Check device in training output:**
+   ```
+   Device: cuda  # Good!
+   Device: cpu   # Bad - not using GPU
    ```
 
----
+3. **Monitor GPU utilization:**
+   ```bash
+   watch -n 1 nvidia-smi
+   # GPU utilization should be 90-100% during training
+   ```
 
-## Quick Reference
+### Permissions Error on Scripts
 
-### Common Commands
-
-**Connect to EC2:**
 ```bash
-ssh -i ~/.ssh/my-ec2-key.pem ubuntu@<EC2_IP>
+chmod +x scripts/*.sh
 ```
 
-**Check GPU:**
-```bash
-nvidia-smi
-watch -n 1 nvidia-smi  # Monitor in real-time
-```
-
-**Monitor Training:**
-```bash
-# Using tmux
-tmux attach -t training
-
-# Using tail
-tail -f training.log
-```
-
-**Download results:**
-```bash
-# From local machine
-cd /path/to/nlp-multitype-proj
-./scripts/aws_sync_results.sh ubuntu@<EC2_IP> ~/.ssh/my-ec2-key.pem
-```
-
-**Stop instance:**
-```bash
-aws ec2 stop-instances --instance-ids i-xxxxxxxxxxxxx
-```
-
-**Terminate instance:**
-```bash
-aws ec2 terminate-instances --instance-ids i-xxxxxxxxxxxxx
-```
-
----
-
-## Cost Optimization Tips
-
-### 1. Use Spot Instances
-
-**Savings:** 70-90%
-
-**How:**
-- Check "Request Spot instances" when launching
-- For 2-hour training jobs, interruption risk is minimal
-
-### 2. Stop (Don't Leave Running)
-
-**Bad:**
-- Launch instance → Run experiments → Forget about it
-- **Cost:** $0.526/hr × 720 hr/month = **$378/month**
-
-**Good:**
-- Launch → Train → Download results → **STOP**
-- **Cost:** $0.526/hr × 5 hours = **$2.63**
-
-### 3. Terminate When Completely Done
-
-- **Stop:** Keeps EBS volume (~$10/month)
-- **Terminate:** Deletes everything (ensures $0 ongoing cost)
-
-### 4. Run Multiple Models in One Session
-
-Instead of:
-- Launch → Train DistilBERT → Stop → Launch → Train BERT → Stop (inefficient)
-
-Do:
-- Launch → Train all models sequentially → Stop (efficient)
-
----
-
-## Example End-to-End Workflow
-
-### Day 1: Setup (One-time)
+### Module Not Found Errors
 
 ```bash
-# 1. Launch EC2 instance via AWS Console
-#    - Type: g4dn.xlarge
-#    - AMI: Deep Learning AMI
-#    - Storage: 100GB
-#    - Download .pem key
-
-# 2. On local: Configure SSH key
-mv ~/Downloads/my-ec2-key.pem ~/.ssh/
-chmod 400 ~/.ssh/my-ec2-key.pem
-
-# 3. Connect to EC2
-ssh -i ~/.ssh/my-ec2-key.pem ubuntu@54.123.45.67
-
-# 4. On EC2: Run setup (inside EC2)
-cd ~
-git clone https://github.com/<YOUR_USER>/nlp-multitype-proj.git
-cd nlp-multitype-proj
-python3 -m venv venv
+# Ensure virtual environment is activated
 source venv/bin/activate
-pip install --upgrade pip
+
+# Reinstall dependencies
 pip install -r requirements.txt
-
-# 5. Verify
-python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
-# Should print: CUDA: True
-
-# 6. Exit EC2
-exit
-```
-
-### Day 2: Upload Data and Train
-
-```bash
-# 1. On local: Upload data
-cd /path/to/nlp-multitype-proj
-./scripts/aws_sync_data.sh upload ubuntu@54.123.45.67 ~/.ssh/my-ec2-key.pem
-
-# 2. SSH back into EC2
-ssh -i ~/.ssh/my-ec2-key.pem ubuntu@54.123.45.67
-
-# 3. On EC2: Start training session
-cd ~/projects/nlp-multitype-proj
-source venv/bin/activate
-
-# Use tmux to avoid connection drops
-tmux new -s training
-
-# 4. Run all models
-python -m src.train_transformer --model_name distilbert-base-uncased
-python -m src.train_transformer --model_name bert-base-uncased
-python -m src.train_transformer --model_name roberta-base
-python -m src.train_transformer --model_name microsoft/deberta-v3-base
-
-# 5. Detach from tmux (Ctrl+B, then D)
-# Close SSH (it's safe now, training continues)
-exit
-```
-
-### Day 3: Retrieve Results
-
-```bash
-# 1. On local: Download results
-cd /path/to/nlp-multitype-proj
-./scripts/aws_sync_results.sh ubuntu@54.123.45.67 ~/.ssh/my-ec2-key.pem
-
-# 2. Results are in: ./results_from_ec2/results/
-
-# 3. View metrics
-cat results_from_ec2/results/transformer/bert-base-uncased/metrics.json
-cat results_from_ec2/results/transformer/bert-base-uncased/report.txt
-
-# 4. Stop or terminate EC2
-aws ec2 stop-instances --instance-ids i-xxxxxxxxxxxxx
-# or
-aws ec2 terminate-instances --instance-ids i-xxxxxxxxxxxxx
 ```
 
 ---
 
-## S3 Integration (Optional)
+## Advanced Usage
 
-### Setup
+### Custom Training Configuration
+
+```bash
+# Shorter sequences for faster training
+MAX_SEQ_LENGTH=128 ./scripts/train_all_transformers.sh
+
+# More epochs for better performance
+NUM_EPOCHS=5 ./scripts/train_all_transformers.sh
+
+# Lower learning rate
+LEARNING_RATE=1e-5 ./scripts/train_all_transformers.sh
+
+# Combine multiple settings
+MAX_SEQ_LENGTH=128 NUM_EPOCHS=2 TRAIN_BATCH_SIZE=32 ./scripts/train_all_transformers.sh
+```
+
+### Train Specific Models Only
+
+Edit `scripts/train_all_transformers.sh` to comment out unwanted models:
+
+```bash
+MODELS=(
+    "distilbert-base-uncased"
+    "bert-base-uncased"
+    # "roberta-base"  # Skip this one
+    "microsoft/deberta-v3-base"
+)
+```
+
+### Run Baseline Model
+
+```bash
+# Baseline is fast (~1 second) so run separately
+python -m src.train_baseline
+```
+
+### Upload Results to S3 (Optional)
 
 ```bash
 # On EC2: Configure AWS CLI
 aws configure
-# Enter:
-#   AWS Access Key ID: <YOUR_KEY>
-#   AWS Secret Access Key: <YOUR_SECRET>
-#   Default region: us-west-2
-#   Default output format: json
-```
+# Enter your credentials
 
-### Upload Results to S3
-
-```bash
-# After training
+# Upload results
 aws s3 sync results/ s3://my-nlp-bucket/nlp-multitype/results/
 
-# Upload specific model
-aws s3 sync results/transformer/bert-base-uncased/ \
-    s3://my-nlp-bucket/nlp-multitype/results/bert-base-uncased/
-```
-
-### Download from S3 to Local
-
-```bash
-# On local
+# Download on local
 aws s3 sync s3://my-nlp-bucket/nlp-multitype/results/ ./results/
 ```
 
@@ -701,63 +587,260 @@ aws s3 sync s3://my-nlp-bucket/nlp-multitype/results/ ./results/
 
 ## Performance Benchmarks
 
-### Training Time on g4dn.xlarge (1x T4 GPU)
+### Training Time Comparison
 
-| Model | Epochs | Time | Cost (On-Demand) | Cost (Spot) |
-|-------|--------|------|------------------|-------------|
-| DistilBERT | 3 | ~15 min | $0.13 | $0.04 |
-| BERT-base | 3 | ~25 min | $0.22 | $0.07 |
-| RoBERTa-base | 3 | ~25 min | $0.22 | $0.07 |
-| DeBERTa-v3 | 3 | ~35 min | $0.31 | $0.09 |
+**Dataset:** 13,966 training samples, 3 epochs
 
-**Total for all 4 models:** ~1.7 hours = **$0.88** (Spot) or **$2.95** (On-Demand)
+| Model | Parameters | Local (MPS) | g4dn.xlarge (T4) | g5.xlarge (A10G) |
+|-------|------------|-------------|------------------|------------------|
+| DistilBERT | 67M | 55 min | ~20 min | ~12 min |
+| BERT-base | 110M | 90 min | ~30 min | ~18 min |
+| RoBERTa-base | 125M | 145 min | ~30 min | ~18 min |
+| DeBERTa-v3 | 183M | 180 min | ~40 min | ~25 min |
 
-### Instance Comparison
+### Cost per Model (g4dn.xlarge)
 
-| Metric | Local (MacBook) | EC2 g4dn.xlarge | EC2 g5.xlarge |
-|--------|-----------------|-----------------|---------------|
-| GPU | None/MPS | NVIDIA T4 | NVIDIA A10G |
-| BERT training | ~2 hours | ~25 min | ~15 min |
-| Cost per hour | $0 | $0.526 | $1.006 |
-
----
-
-## Security Best Practices
-
-1. **SSH Key Security:**
-   - Never commit `.pem` files to Git
-   - Use `chmod 400` on key files
-   - Store in `~/.ssh/` only
-
-2. **Security Groups:**
-   - Allow SSH only from your IP (not 0.0.0.0/0)
-   - No need to open other ports for this project
-
-3. **AWS Credentials:**
-   - Never hardcode in scripts
-   - Use AWS CLI configuration or IAM roles
-   - Add `.aws/` to `.gitignore` (already done)
-
-4. **Data Privacy:**
-   - If data is sensitive, use S3 with encryption
-   - Consider VPC for additional isolation
+| Model | Time | On-Demand | Spot |
+|-------|------|-----------|------|
+| DistilBERT | 20 min | $0.18 | $0.05 |
+| BERT | 30 min | $0.26 | $0.08 |
+| RoBERTa | 30 min | $0.26 | $0.08 |
+| DeBERTa | 40 min | $0.35 | $0.11 |
+| **All 4** | **2 hours** | **$1.05** | **$0.32** |
 
 ---
 
-## Next Steps
+## Complete End-to-End Example
 
-After completing EC2 experiments:
+### Day 1: Setup (15 minutes)
 
-1. **Download results** using sync script
-2. **Analyze and compare** model performance locally
-3. **Generate comparison plots** (see `src/viz_utils.py`)
-4. **Write up findings** in final report
-5. **Clean up AWS resources:**
-   - Terminate EC2 instance
-   - Delete S3 objects (if temporary)
-   - Remove unused EBS volumes
+```bash
+# === On Local Machine ===
+
+# 1. Ensure code is pushed to GitHub
+cd /path/to/nlp-multitype-proj
+git add .
+git commit -m "Ready for EC2 training"
+git push
+
+# 2. Launch EC2 via AWS Console
+#    - Instance: g4dn.xlarge
+#    - AMI: Deep Learning AMI GPU PyTorch
+#    - Storage: 100GB gp3
+#    - Security: Allow SSH from My IP
+#    - Download .pem key
+
+# 3. Configure SSH key
+mv ~/Downloads/my-ec2-key.pem ~/.ssh/
+chmod 400 ~/.ssh/my-ec2-key.pem
+
+# 4. Connect to EC2
+ssh -i ~/.ssh/my-ec2-key.pem ubuntu@54.123.45.67
+
+# === Now on EC2 ===
+
+# 5. Clone and setup
+git clone https://github.com/yourusername/nlp-multitype-proj.git
+cd nlp-multitype-proj
+./scripts/aws_ec2_setup.sh
+
+# 6. Verify
+python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
+# Output: CUDA: True
+
+ls data/processed/
+# Should show JSONL files (already in repo)
+
+# 7. Disconnect
+exit
+```
+
+### Day 2: Training (2 hours on GPU)
+
+```bash
+# === On Local Machine ===
+
+# SSH back into EC2
+ssh -i ~/.ssh/my-ec2-key.pem ubuntu@54.123.45.67
+
+# === Now on EC2 ===
+
+cd ~/projects/nlp-multitype-proj
+source venv/bin/activate
+
+# Use tmux to prevent disconnection issues
+tmux new -s training
+
+# Run all models
+./scripts/train_all_transformers.sh
+
+# Detach from tmux: Ctrl+B, then D
+# Disconnect from SSH (training continues)
+exit
+```
+
+### Day 3: Retrieve Results (5 minutes)
+
+```bash
+# === On Local Machine ===
+
+# Download results
+cd /path/to/nlp-multitype-proj
+./scripts/aws_sync_results.sh ubuntu@54.123.45.67 ~/.ssh/my-ec2-key.pem
+
+# View results
+cd results_from_ec2/results
+cat transformer/bert-base-uncased/metrics.json | python3 -m json.tool
+
+# Compare models
+for model in transformer/*/; do
+    echo "$model:"
+    cat "$model/metrics.json" | python3 -m json.tool | grep -E "(accuracy_test|macro_f1_test)"
+done
+
+# Terminate EC2 instance (or stop if you'll use again soon)
+aws ec2 terminate-instances --instance-ids i-xxxxxxxxxxxxx
+
+# Done!
+```
+
+---
+
+## Quick Reference Commands
+
+### EC2 Management
+
+```bash
+# List instances
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId,State.Name,PublicIpAddress,InstanceType]' --output table
+
+# Stop instance
+aws ec2 stop-instances --instance-ids i-xxxxxxxxxxxxx
+
+# Start stopped instance
+aws ec2 start-instances --instance-ids i-xxxxxxxxxxxxx
+
+# Terminate instance
+aws ec2 terminate-instances --instance-ids i-xxxxxxxxxxxxx
+
+# Get public IP
+aws ec2 describe-instances --instance-ids i-xxxxxxxxxxxxx --query 'Reservations[0].Instances[0].PublicIpAddress' --output text
+```
+
+### Training Commands
+
+```bash
+# Single model
+python -m src.train_transformer --model_name bert-base-uncased
+
+# All models
+./scripts/train_all_transformers.sh
+
+# Baseline
+python -m src.train_baseline
+```
+
+### Monitoring
+
+```bash
+# GPU usage
+nvidia-smi
+watch -n 1 nvidia-smi
+
+# Disk space
+df -h
+
+# Memory
+free -h
+
+# Running processes
+htop
+```
+
+---
+
+## Best Practices
+
+### 1. Always Use tmux or screen
+
+**Why:** Prevents training interruption if SSH connection drops
+
+```bash
+# Start session
+tmux new -s training
+
+# Detach: Ctrl+B, then D
+# Reattach: tmux attach -t training
+```
+
+### 2. Verify CUDA Before Training
+
+```bash
+python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}, Devices: {torch.cuda.device_count()}')"
+```
+
+### 3. Download Results Immediately
+
+Don't leave results only on EC2:
+```bash
+./scripts/aws_sync_results.sh ubuntu@<EC2_IP> ~/.ssh/my-ec2-key.pem
+```
+
+### 4. Stop/Terminate When Done
+
+**Check costs before leaving:**
+```bash
+# This instance costs $0.526/hour (On-Demand)
+# If you forget to stop it for a week: $88.37!
+```
+
+**Always stop or terminate:**
+```bash
+aws ec2 stop-instances --instance-ids i-xxxxx
+```
+
+### 5. Set Up Cost Alerts
+
+- AWS Console → Billing → Budgets
+- Create monthly budget ($50 or your threshold)
+- Set alert at 80%
+
+---
+
+## Checklist
+
+### Before Training
+
+- [ ] EC2 instance launched (g4dn.xlarge recommended)
+- [ ] SSH key configured (`chmod 400`)
+- [ ] Environment setup complete (`aws_ec2_setup.sh` run)
+- [ ] CUDA verified (prints `True`)
+- [ ] Data present (`ls data/processed/` shows JSONL files)
+- [ ] Virtual environment activated
+
+### During Training
+
+- [ ] Using tmux/screen (to survive disconnections)
+- [ ] GPU is being used (`nvidia-smi` shows python process)
+- [ ] Monitoring progress (`tmux attach` or check logs)
+
+### After Training
+
+- [ ] Results downloaded to local (`aws_sync_results.sh`)
+- [ ] Results backed up (git commit or S3 upload)
+- [ ] EC2 instance stopped or terminated
+- [ ] Billing dashboard checked (no unexpected charges)
+
+---
+
+## Security Notes
+
+- **Never commit `.pem` files** (already in `.gitignore`)
+- **Set restrictive permissions:** `chmod 400 ~/.ssh/my-key.pem`
+- **Limit SSH access:** Security group should allow SSH only from your IP
+- **No hardcoded credentials:** Use environment variables or AWS IAM roles
+- **Rotate keys:** Change SSH keys periodically
 
 ---
 
 *Last updated: 2025-11-13*
-

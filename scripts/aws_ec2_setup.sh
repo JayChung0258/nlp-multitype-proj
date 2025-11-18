@@ -51,7 +51,7 @@ echo ""
 echo "[3/6] Cloning repository..."
 
 # TODO: Replace <GITHUB_REPO_URL> with your actual GitHub repository URL
-GITHUB_REPO_URL="<GITHUB_REPO_URL>"
+GITHUB_REPO_URL="https://github.com/JayChung0258/nlp-multitype-proj.git"
 
 if [ -d "${PROJECT_DIR}" ]; then
     echo "  Repository already exists at ${PROJECT_DIR}"

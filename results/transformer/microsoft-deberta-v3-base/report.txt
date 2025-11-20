@@ -1,8 +1,8 @@
 Transformer Model - Classification Report
 ======================================================================
 
-MODEL: roberta-base
-Generated: 2025-11-20T00:54:44.648697Z
+MODEL: microsoft/deberta-v3-base
+Generated: 2025-11-20T01:13:14.822529Z
 
 TRAINING CONFIGURATION
 ----------------------------------------------------------------------
@@ -14,44 +14,44 @@ Learning rate:         2e-05
 Weight decay:          0.01
 Warmup ratio:          0.1
 Random seed:           42
-Trainable parameters:  124,648,708
+Trainable parameters:  184,425,220
 
 VALIDATION SET METRICS
 ----------------------------------------------------------------------
-Accuracy:  0.7023
-Macro-F1:  0.6719
+Accuracy:  0.7003
+Macro-F1:  0.6939
 
 F1 per class:
-  T1 (Human Original):       0.6308
-  T2 (LLM Generated):        0.8940
-  T3 (Human Paraphrased):    0.2653
-  T4 (LLM Paraphrased):      0.8975
+  T1 (Human Original):       0.4088
+  T2 (LLM Generated):        0.9026
+  T3 (Human Paraphrased):    0.5559
+  T4 (LLM Paraphrased):      0.9081
 
 TEST SET METRICS (FINAL)
 ----------------------------------------------------------------------
-Accuracy:  0.6950
-Macro-F1:  0.6623
+Accuracy:  0.7177
+Macro-F1:  0.7125
 
 F1 per class:
-  T1 (Human Original):       0.6346
-  T2 (LLM Generated):        0.8855
-  T3 (Human Paraphrased):    0.2472
-  T4 (LLM Paraphrased):      0.8817
+  T1 (Human Original):       0.4429
+  T2 (LLM Generated):        0.9147
+  T3 (Human Paraphrased):    0.5796
+  T4 (LLM Paraphrased):      0.9127
 
 CONFUSION MATRIX (TEST)
 ----------------------------------------------------------------------
           Predicted
           T1    T2    T3    T4
 Actual
-  T1     634     6   108     2
-  T2       1   696     9    44
-  T3     612     9   123     3
-  T4       1   111     8   630
+  T1     283     3   461     3
+  T2       0   697     8    45
+  T3     242     3   497     5
+  T4       3    71     2   674
 
 EFFICIENCY METRICS
 ----------------------------------------------------------------------
-Training time:     568.64 seconds (9.48 minutes)
-Test eval time:    8.61 seconds
-Throughput:        1.9 samples/sec
+Training time:     1051.93 seconds (17.53 minutes)
+Test eval time:    19.17 seconds
+Throughput:        0.8 samples/sec
 
 ======================================================================

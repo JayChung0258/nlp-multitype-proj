@@ -1,0 +1,63 @@
+{
+  "model_name": "google/electra-base-discriminator",
+  "model_slug": "google-electra-base-discriminator",
+  "timestamp_utc": "2025-12-08T15:37:32.235941Z",
+  "train_samples": 13966,
+  "val_samples": 2996,
+  "test_samples": 2997,
+  "max_seq_length": 256,
+  "train_batch_size": 16,
+  "eval_batch_size": 32,
+  "num_train_epochs": 1.0,
+  "learning_rate": 2e-05,
+  "weight_decay": 0.01,
+  "warmup_ratio": 0.1,
+  "seed": 42,
+  "num_parameters": 109485316,
+  "accuracy_test": 0.574240907574241,
+  "macro_f1_test": 0.5604441271761285,
+  "f1_per_class_test": {
+    "T1": 0.3745980707395498,
+    "T2": 0.7417735638594535,
+    "T3": 0.4669211195928753,
+    "T4": 0.6584837545126354
+  },
+  "confusion_matrix_test": [
+    [
+      233,
+      108,
+      338,
+      71
+    ],
+    [
+      9,
+      665,
+      38,
+      38
+    ],
+    [
+      201,
+      109,
+      367,
+      70
+    ],
+    [
+      51,
+      161,
+      82,
+      456
+    ]
+  ],
+  "accuracy_val": 0.5694259012016022,
+  "macro_f1_val": 0.5548410385946401,
+  "f1_per_class_val": {
+    "T1": 0.3640776699029126,
+    "T2": 0.7484662576687117,
+    "T3": 0.4541429475015813,
+    "T4": 0.6526772793053546
+  },
+  "train_time_sec": 348.84610783297103,
+  "eval_time_test_sec": 24.155757166910917,
+  "throughput_samples_per_sec": 124.06980163326679,
+  "model_size_mb": 418.578
+}

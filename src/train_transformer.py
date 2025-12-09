@@ -744,18 +744,17 @@ def main():
     print("\n[2/7] Building tokenizer and model")
     tokenizer, model = build_tokenizer_and_model(args.model_name, num_labels=4)
     
-    # Check device
     # Check device (with MPS support for Apple Silicon)
-if torch.cuda.is_available():
-    device = torch.device('cuda')
-    print(f"\n  Using device: cuda")
-    print(f"  GPU: {torch.cuda.get_device_name(0)}")
-elif torch.backends.mps.is_available():
-    device = torch.device('mps')
-    print(f"\n  Using device: mps (Apple Silicon)")
-else:
-    device = torch.device('cpu')
-    print(f"\n  Using device: cpu")
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+        print(f"\n  Using device: cuda")
+        print(f"  GPU: {torch.cuda.get_device_name(0)}")
+    elif torch.backends.mps.is_available():
+        device = torch.device('mps')
+        print(f"\n  Using device: mps (Apple Silicon)")
+    else:
+        device = torch.device('cpu')
+        print(f"\n  Using device: cpu")
     
     # Step 3: Tokenize datasets
     print("\n[3/7] Tokenizing datasets")

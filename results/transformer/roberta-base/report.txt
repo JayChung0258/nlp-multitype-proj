@@ -2,7 +2,7 @@ Transformer Model - Classification Report
 ======================================================================
 
 MODEL: roberta-base
-Generated: 2025-11-20T00:54:44.648697Z
+Generated: 2025-11-26T00:55:45.913053Z
 
 TRAINING CONFIGURATION
 ----------------------------------------------------------------------
@@ -18,40 +18,40 @@ Trainable parameters:  124,648,708
 
 VALIDATION SET METRICS
 ----------------------------------------------------------------------
-Accuracy:  0.7023
-Macro-F1:  0.6719
+Accuracy:  0.6979
+Macro-F1:  0.6472
 
 F1 per class:
-  T1 (Human Original):       0.6308
-  T2 (LLM Generated):        0.8940
-  T3 (Human Paraphrased):    0.2653
-  T4 (LLM Paraphrased):      0.8975
+  T1 (Human Original):       0.6533
+  T2 (LLM Generated):        0.8858
+  T3 (Human Paraphrased):    0.1623
+  T4 (LLM Paraphrased):      0.8874
 
 TEST SET METRICS (FINAL)
 ----------------------------------------------------------------------
-Accuracy:  0.6950
-Macro-F1:  0.6623
+Accuracy:  0.7007
+Macro-F1:  0.6423
 
 F1 per class:
-  T1 (Human Original):       0.6346
-  T2 (LLM Generated):        0.8855
-  T3 (Human Paraphrased):    0.2472
-  T4 (LLM Paraphrased):      0.8817
+  T1 (Human Original):       0.6623
+  T2 (LLM Generated):        0.8919
+  T3 (Human Paraphrased):    0.1249
+  T4 (LLM Paraphrased):      0.8901
 
 CONFUSION MATRIX (TEST)
 ----------------------------------------------------------------------
           Predicted
           T1    T2    T3    T4
 Actual
-  T1     634     6   108     2
-  T2       1   696     9    44
-  T3     612     9   123     3
-  T4       1   111     8   630
+  T1     710     4    34     2
+  T2       0   701     9    40
+  T3     684     9    53     1
+  T4       0   108     6   636
 
 EFFICIENCY METRICS
 ----------------------------------------------------------------------
-Training time:     568.64 seconds (9.48 minutes)
-Test eval time:    8.61 seconds
-Throughput:        1.9 samples/sec
+Training time:     1124.94 seconds (18.75 minutes)
+Test eval time:    20.47 seconds
+Throughput:        0.8 samples/sec
 
 ======================================================================

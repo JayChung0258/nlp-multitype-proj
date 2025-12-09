@@ -2,7 +2,7 @@ Transformer Model - Classification Report
 ======================================================================
 
 MODEL: distilbert-base-uncased
-Generated: 2025-11-20T00:34:53.783188Z
+Generated: 2025-11-26T00:16:56.923104Z
 
 TRAINING CONFIGURATION
 ----------------------------------------------------------------------
@@ -18,40 +18,40 @@ Trainable parameters:  66,956,548
 
 VALIDATION SET METRICS
 ----------------------------------------------------------------------
-Accuracy:  0.5854
-Macro-F1:  0.5717
+Accuracy:  0.5824
+Macro-F1:  0.5728
 
 F1 per class:
-  T1 (Human Original):       0.4929
-  T2 (LLM Generated):        0.7522
-  T3 (Human Paraphrased):    0.3554
-  T4 (LLM Paraphrased):      0.6861
+  T1 (Human Original):       0.4667
+  T2 (LLM Generated):        0.7584
+  T3 (Human Paraphrased):    0.3822
+  T4 (LLM Paraphrased):      0.6839
 
 TEST SET METRICS (FINAL)
 ----------------------------------------------------------------------
-Accuracy:  0.5869
-Macro-F1:  0.5718
+Accuracy:  0.5933
+Macro-F1:  0.5812
 
 F1 per class:
-  T1 (Human Original):       0.4783
-  T2 (LLM Generated):        0.7625
-  T3 (Human Paraphrased):    0.3359
-  T4 (LLM Paraphrased):      0.7107
+  T1 (Human Original):       0.4810
+  T2 (LLM Generated):        0.7702
+  T3 (Human Paraphrased):    0.3684
+  T4 (LLM Paraphrased):      0.7053
 
 CONFUSION MATRIX (TEST)
 ----------------------------------------------------------------------
           Predicted
           T1    T2    T3    T4
 Actual
-  T1     397    72   191    90
-  T2      48   631    12    59
-  T3     396    85   198    68
-  T4      69   117    31   533
+  T1     380    65   210    95
+  T2      28   625    27    70
+  T3     363    73   231    80
+  T4      59   110    39   542
 
 EFFICIENCY METRICS
 ----------------------------------------------------------------------
-Training time:     285.30 seconds (4.75 minutes)
-Test eval time:    4.74 seconds
-Throughput:        3.4 samples/sec
+Training time:     544.46 seconds (9.07 minutes)
+Test eval time:    10.70 seconds
+Throughput:        1.5 samples/sec
 
 ======================================================================

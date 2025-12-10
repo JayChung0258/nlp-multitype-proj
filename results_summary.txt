@@ -1,0 +1,21 @@
+Model Results Summary:
+
+Baseline:
+- TF-IDF + LR: 0.509 F1
+
+Transformers:
+- BERT: 0.571 F1
+- RoBERTa: 0.642 F1
+- DeBERTa-base: 0.711 F1 ← BEST
+- DistilBERT: 0.579 F1
+- DeBERTa-large: 0.68 F1 (T3 collapsed)
+- ELECTRA: 0.56 F1
+- ALBERT: 0.61 F1
+
+Advanced:
+- Class weights (auto): 0.69 F1 (T1 collapsed)
+- Class weights (manual): 0.64 F1 (T1 collapsed)
+- LoRA (r=8): 0.54 F1 (all classes degraded)
+- Ensemble (3-model): 0.705 F1 (worse than DeBERTa)
+
+Best Model: DeBERTa-v3-base (0.711 F1)

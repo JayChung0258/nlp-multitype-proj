@@ -2,7 +2,7 @@ Transformer Model - Classification Report
 ======================================================================
 
 MODEL: microsoft/deberta-v3-base
-Generated: 2025-11-26T01:25:33.757489Z
+Generated: 2025-12-10T11:15:11.713494Z
 
 TRAINING CONFIGURATION
 ----------------------------------------------------------------------
@@ -18,40 +18,40 @@ Trainable parameters:  184,425,220
 
 VALIDATION SET METRICS
 ----------------------------------------------------------------------
-Accuracy:  0.7043
-Macro-F1:  0.7019
+Accuracy:  0.7003
+Macro-F1:  0.6997
 
 F1 per class:
-  T1 (Human Original):       0.4597
-  T2 (LLM Generated):        0.9014
-  T3 (Human Paraphrased):    0.5428
-  T4 (LLM Paraphrased):      0.9035
+  T1 (Human Original):       0.4976
+  T2 (LLM Generated):        0.9003
+  T3 (Human Paraphrased):    0.4997
+  T4 (LLM Paraphrased):      0.9014
 
 TEST SET METRICS (FINAL)
 ----------------------------------------------------------------------
-Accuracy:  0.7100
-Macro-F1:  0.7083
+Accuracy:  0.7107
+Macro-F1:  0.7107
 
 F1 per class:
-  T1 (Human Original):       0.4662
-  T2 (LLM Generated):        0.9149
-  T3 (Human Paraphrased):    0.5463
-  T4 (LLM Paraphrased):      0.9058
+  T1 (Human Original):       0.5051
+  T2 (LLM Generated):        0.9155
+  T3 (Human Paraphrased):    0.5153
+  T4 (LLM Paraphrased):      0.9067
 
 CONFUSION MATRIX (TEST)
 ----------------------------------------------------------------------
           Predicted
           T1    T2    T3    T4
 Actual
-  T1     317     0   430     3
-  T2       0   704     7    39
-  T3     289     6   448     4
-  T4       4    79     8   659
+  T1     370     0   377     3
+  T2       0   704     6    40
+  T3     342     6   395     4
+  T4       3    78     8   661
 
 EFFICIENCY METRICS
 ----------------------------------------------------------------------
-Training time:     1675.97 seconds (27.93 minutes)
-Test eval time:    39.69 seconds
+Training time:     1730.20 seconds (28.84 minutes)
+Test eval time:    40.95 seconds
 Throughput:        0.4 samples/sec
 
 ======================================================================

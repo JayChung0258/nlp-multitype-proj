@@ -1,63 +1,63 @@
 {
   "model_name": "distilbert-base-uncased",
   "model_slug": "distilbert-base-uncased",
-  "timestamp_utc": "2025-11-26T00:16:56.703116Z",
+  "timestamp_utc": "2025-12-09T11:57:28.170163Z",
   "train_samples": 13966,
   "val_samples": 2996,
   "test_samples": 2997,
   "max_seq_length": 256,
   "train_batch_size": 16,
   "eval_batch_size": 32,
-  "num_train_epochs": 3.0,
+  "num_train_epochs": 1.0,
   "learning_rate": 2e-05,
   "weight_decay": 0.01,
   "warmup_ratio": 0.1,
   "seed": 42,
-  "num_parameters": 66956548,
-  "accuracy_test": 0.5932599265932599,
-  "macro_f1_test": 0.5812205997049263,
+  "num_parameters": 741124,
+  "accuracy_test": 0.35235235235235235,
+  "macro_f1_test": 0.3393217016608048,
   "f1_per_class_test": {
-    "T1": 0.4810126582278481,
-    "T2": 0.7701786814540974,
-    "T3": 0.3684210526315789,
-    "T4": 0.7052700065061809
+    "T1": 0.22357019064124783,
+    "T2": 0.45923460898502494,
+    "T3": 0.3239145416953825,
+    "T4": 0.3505674653215637
   },
   "confusion_matrix_test": [
     [
-      380,
-      65,
-      210,
-      95
+      129,
+      208,
+      222,
+      191
     ],
     [
-      28,
-      625,
-      27,
-      70
+      66,
+      414,
+      97,
+      173
     ],
     [
-      363,
-      73,
-      231,
-      80
+      116,
+      202,
+      235,
+      194
     ],
     [
-      59,
-      110,
-      39,
-      542
+      93,
+      229,
+      150,
+      278
     ]
   ],
-  "accuracy_val": 0.5824432576769025,
-  "macro_f1_val": 0.5728020012029402,
+  "accuracy_val": 0.3581441922563418,
+  "macro_f1_val": 0.3406630281322856,
   "f1_per_class_val": {
-    "T1": 0.4666666666666667,
-    "T2": 0.7584020291693088,
-    "T3": 0.3821949347659248,
-    "T4": 0.683944374209861
+    "T1": 0.19874664279319607,
+    "T2": 0.46455026455026455,
+    "T3": 0.3268698060941828,
+    "T4": 0.372485399091499
   },
-  "train_time_sec": 544.4594151250203,
-  "eval_time_test_sec": 10.701187541009858,
-  "throughput_samples_per_sec": 280.0623751816966,
-  "model_size_mb": 256.332
+  "train_time_sec": 137.86543566698674,
+  "eval_time_test_sec": 10.265952374902554,
+  "throughput_samples_per_sec": 291.93589552654123,
+  "model_size_mb": 3.737
 }

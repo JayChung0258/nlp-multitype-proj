@@ -20,6 +20,10 @@ import os
 from pathlib import Path
 from datetime import datetime
 from typing import Tuple, Dict, Any, Optional
+from peft import LoraConfig, get_peft_model, TaskType
+
+from sklearn.utils.class_weight import compute_class_weight
+import torch.nn.functional as F
 
 import pandas as pd
 import numpy as np
@@ -304,14 +308,47 @@ def train_and_evaluate(
         disable_tqdm=False
     )
     
+    # Compute class weights if requested
+    class_weights = None
+    if args.use_class_weights:
+        print("\n[Computing class weights for T3 improvement]")
+        
+        # Manual weights: Data is balanced, so we manually boost T3
+        # Based on current performance: T3 (0.58) needs most help
+        class_weights_array = np.array([
+            1.0,  # T1: Human Original (0.75 F1) - keep normal
+            0.9,  # T2: LLM Generated (0.85 F1) - reduce slightly (easiest)
+            1.5,  # T3: Human Paraphrased (0.58 F1) - BOOST significantly (hardest)
+            0.9   # T4: LLM Paraphrased (0.80 F1) - reduce slightly (easy)
+        ])
+        
+        class_weights = torch.tensor(class_weights_array, dtype=torch.float32)
+        print(f"  Manual class weights applied:")
+        print(f"    T1 (label 0): {class_weights[0]:.3f}")
+        print(f"    T2 (label 1): {class_weights[1]:.3f}")
+        print(f"    T3 (label 2): {class_weights[2]:.3f} ← BOOSTED")
+        print(f"    T4 (label 3): {class_weights[3]:.3f}")
+        print(f"  → T3 will receive {class_weights[2]/class_weights[0]:.1f}x MORE penalty than T1")
+
     # Initialize Trainer
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset,
-        eval_dataset=val_dataset,
-        compute_metrics=compute_metrics_for_trainer
-    )
+    # Use WeightedTrainer if class weights are enabled
+    if args.use_class_weights:
+        trainer = WeightedTrainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_dataset,
+            eval_dataset=val_dataset,
+            compute_metrics=compute_metrics_for_trainer,
+            class_weights=class_weights,
+        )
+    else:
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_dataset,
+            eval_dataset=val_dataset,
+            compute_metrics=compute_metrics_for_trainer,
+        )
     
     # Train
     print(f"\nTraining {args.model_name}...")
@@ -707,10 +744,63 @@ def parse_args():
         default='results/transformer',
         help='Root directory for outputs (default: results/transformer)'
     )
+    parser.add_argument(
+    '--use_class_weights',
+    action='store_true',
+    help='Use balanced class weights to handle T3 difficulty (default: False)'
+)
+    
+    parser.add_argument(
+    '--use_lora',
+    action='store_true',
+    help='Use LoRA (Low-Rank Adaptation) for parameter-efficient fine-tuning (default: False)'
+)
+    parser.add_argument(
+        '--lora_r',
+        type=int,
+        default=8,
+        help='LoRA rank (default: 8, higher = more parameters but better learning)'
+    )
+    parser.add_argument(
+        '--lora_alpha',
+        type=int,
+        default=16,
+        help='LoRA alpha scaling parameter (default: 16)'
+    )
+    parser.add_argument(
+        '--lora_dropout',
+        type=float,
+        default=0.1,
+        help='LoRA dropout rate (default: 0.1)'
+    )
     
     return parser.parse_args()
 
-
+class WeightedTrainer(Trainer):
+    """Custom Trainer with class-weighted loss for handling T3 difficulty."""
+    
+    def __init__(self, *args, class_weights=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.class_weights = class_weights
+        
+    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
+        """Override loss computation to apply class weights."""
+        labels = inputs.pop("labels")
+        outputs = model(**inputs)
+        logits = outputs.logits
+        
+        # Apply class weights to loss
+        if self.class_weights is not None:
+            loss = F.cross_entropy(
+                logits, 
+                labels, 
+                weight=self.class_weights.to(self.args.device)
+            )
+        else:
+            loss = F.cross_entropy(logits, labels)
+        
+        return (loss, outputs) if return_outputs else loss
+    
 def main():
     """
     Main training pipeline for transformer models.
@@ -743,6 +833,45 @@ def main():
     # Step 2: Build tokenizer and model
     print("\n[2/7] Building tokenizer and model")
     tokenizer, model = build_tokenizer_and_model(args.model_name, num_labels=4)
+    
+    # Apply LoRA if requested
+    if args.use_lora:
+        print("\n[Applying LoRA (Low-Rank Adaptation)]")
+        
+        # Auto-detect target modules based on model architecture
+        model_type = model.config.model_type.lower()
+        
+        if "deberta" in model_type:
+            target_modules = ["query_proj", "value_proj"]
+        elif "distilbert" in model_type:
+            target_modules = ["q_lin", "v_lin"]
+        elif "roberta" in model_type or "bert" in model_type:
+            target_modules = ["query", "value"]
+        elif "electra" in model_type:
+            target_modules = ["query", "value"]
+        elif "albert" in model_type:
+            target_modules = ["query", "value"]
+        else:
+            # Default fallback - will work for most models
+            target_modules = ["query", "value"]
+        
+        print(f"  Model type: {model_type}")
+        print(f"  Target modules: {target_modules}")
+        
+        lora_config = LoraConfig(
+            task_type=TaskType.SEQ_CLS,
+            r=args.lora_r,
+            lora_alpha=args.lora_alpha,
+            lora_dropout=args.lora_dropout,
+            bias="none",
+            target_modules=target_modules,
+        )
+        
+        model = get_peft_model(model, lora_config)
+        model.print_trainable_parameters()
+        print(f"  LoRA rank (r): {args.lora_r}")
+        print(f"  LoRA alpha: {args.lora_alpha}")
+        print(f"  LoRA dropout: {args.lora_dropout}")
     
     # Check device (with MPS support for Apple Silicon)
     if torch.cuda.is_available():

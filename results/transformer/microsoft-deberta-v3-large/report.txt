@@ -1,57 +1,57 @@
 Transformer Model - Classification Report
 ======================================================================
 
-MODEL: distilbert-base-uncased
-Generated: 2025-12-09T11:57:28.423900Z
+MODEL: microsoft/deberta-v3-large
+Generated: 2025-12-09T01:35:51.537794Z
 
 TRAINING CONFIGURATION
 ----------------------------------------------------------------------
 Max sequence length:   256
-Train batch size:      16
+Train batch size:      8
 Eval batch size:       32
-Epochs:                1.0
+Epochs:                3.0
 Learning rate:         2e-05
 Weight decay:          0.01
 Warmup ratio:          0.1
 Random seed:           42
-Trainable parameters:  741,124
+Trainable parameters:  435,065,860
 
 VALIDATION SET METRICS
 ----------------------------------------------------------------------
-Accuracy:  0.3581
-Macro-F1:  0.3407
+Accuracy:  0.7176
+Macro-F1:  0.6886
 
 F1 per class:
-  T1 (Human Original):       0.1987
-  T2 (LLM Generated):        0.4646
-  T3 (Human Paraphrased):    0.3269
-  T4 (LLM Paraphrased):      0.3725
+  T1 (Human Original):       0.6286
+  T2 (LLM Generated):        0.9265
+  T3 (Human Paraphrased):    0.2700
+  T4 (LLM Paraphrased):      0.9294
 
 TEST SET METRICS (FINAL)
 ----------------------------------------------------------------------
-Accuracy:  0.3524
-Macro-F1:  0.3393
+Accuracy:  0.7134
+Macro-F1:  0.6803
 
 F1 per class:
-  T1 (Human Original):       0.2236
-  T2 (LLM Generated):        0.4592
-  T3 (Human Paraphrased):    0.3239
-  T4 (LLM Paraphrased):      0.3506
+  T1 (Human Original):       0.6366
+  T2 (LLM Generated):        0.9194
+  T3 (Human Paraphrased):    0.2503
+  T4 (LLM Paraphrased):      0.9149
 
 CONFUSION MATRIX (TEST)
 ----------------------------------------------------------------------
           Predicted
           T1    T2    T3    T4
 Actual
-  T1     129   208   222   191
-  T2      66   414    97   173
-  T3     116   202   235   194
-  T4      93   229   150   278
+  T1     642     0   106     2
+  T2       8   696     1    45
+  T3     614     4   123     6
+  T4       3    64     6   677
 
 EFFICIENCY METRICS
 ----------------------------------------------------------------------
-Training time:     137.87 seconds (2.30 minutes)
-Test eval time:    10.27 seconds
-Throughput:        1.6 samples/sec
+Training time:     5624.22 seconds (93.74 minutes)
+Test eval time:    150.65 seconds
+Throughput:        0.1 samples/sec
 
 ======================================================================

@@ -1,10 +1,20 @@
 """
-Input style augmentation for NLP multi-type project.
+Input style augmentation for NLP Multi-Type project.
 
-- Operates on processed JSONL (e.g., data/processed/train_4class.jsonl)
-- T1 (Human Original): add slang + light typos
-- T3 (Human Paraphrased): add light slang (no typos)
-- T2/T4: unchanged
+- Works on processed JSONL files produced by src.data_prep
+  (e.g., data/processed/train_4class.jsonl)
+- Follows the DATA_CONTRACT schema, including:
+  id, family_id, source, text, label, label_id, text_len_char, text_len_word, ...
+
+Augmentation rules:
+- T1 (Human Original):
+    - add slang (token-level replacements + optional insertions)
+    - add at most 1 small character-level typo per sentence
+- T3 (Human Paraphrased):
+    - add light slang only
+    - no typos
+- T2/T4:
+    - unchanged
 
 Usage (from repo root):
     python -m src.input_style_augmentation \
@@ -186,6 +196,11 @@ def inject_typos(
 # -------------------------
 
 def update_length_fields(row: Dict[str, Any]) -> None:
+    """
+    Keep DATA_CONTRACT fields consistent:
+    - text_len_char
+    - text_len_word
+    """
     text = row.get("text", "") or ""
     row["text_len_char"] = len(text)
     row["text_len_word"] = len(text.split())
@@ -205,18 +220,24 @@ def augment_row(
     - T3: slang only (augment t3_aug_per_sample times)
     - T2/T4: no augmentation
     """
-    label = row.get("label")
+    label_str = row.get("label")
+    label_id = row.get("label_id")
     base_id = row.get("id", "")
     text = row.get("text", "") or ""
+
+    # robust check: support both string labels and numeric ids
+    is_t1 = (label_str == "T1") or (label_id == 0)
+    is_t3 = (label_str == "T3") or (label_id == 2)
 
     # always recalc lengths for original
     update_length_fields(row)
 
     outputs = [row]
 
-    if label == "T1" and t1_aug_per_sample > 0:
+    if is_t1 and t1_aug_per_sample > 0:
         for k in range(t1_aug_per_sample):
-            aug = dict(row)  # shallow copy
+            aug = dict(row)  # shallow copy (family_id/source/etc. preserved)
+
             aug_text = inject_slang(
                 text,
                 rng=rng,
@@ -231,12 +252,14 @@ def augment_row(
             )
             aug["text"] = aug_text
             aug["id"] = f"{base_id}__aug_t1_{k+1}"
+            # label / label_id stay the same
             update_length_fields(aug)
             outputs.append(aug)
 
-    elif label == "T3" and t3_aug_per_sample > 0:
+    elif is_t3 and t3_aug_per_sample > 0:
         for k in range(t3_aug_per_sample):
             aug = dict(row)
+
             aug_text = inject_slang(
                 text,
                 rng=rng,
@@ -277,8 +300,7 @@ def process_file(
             line = line.strip()
             if not line:
                 continue
-            row = json.loads(line)
-            label = row.get("label")
+            row: Dict[str, Any] = json.loads(line)
 
             augmented_rows = augment_row(
                 row=row,
@@ -287,19 +309,27 @@ def process_file(
                 t3_aug_per_sample=t3_aug_per_sample,
             )
 
+            # write original + augmented
             for r in augmented_rows:
                 fout.write(json.dumps(r, ensure_ascii=False) + "\n")
 
             num_rows += 1
-            if label == "T1":
+
+            label_str = row.get("label")
+            label_id = row.get("label_id")
+            is_t1 = (label_str == "T1") or (label_id == 0)
+            is_t3 = (label_str == "T3") or (label_id == 2)
+
+            if is_t1:
                 num_t1_aug += max(0, len(augmented_rows) - 1)
-            elif label == "T3":
+            elif is_t3:
                 num_t3_aug += max(0, len(augmented_rows) - 1)
 
-    print(f"Processed base rows: {num_rows}")
-    print(f"Extra T1 augmented rows: {num_t1_aug}")
-    print(f"Extra T3 augmented rows: {num_t3_aug}")
-    print(f"Total output rows: {num_rows + num_t1_aug + num_t3_aug}")
+    total = num_rows + num_t1_aug + num_t3_aug
+    print(f"Processed base rows:        {num_rows}")
+    print(f"Extra T1 augmented rows:   {num_t1_aug}")
+    print(f"Extra T3 augmented rows:   {num_t3_aug}")
+    print(f"Total output rows:         {total}")
 
 
 def main():
@@ -343,4 +373,26 @@ def main():
     output_path = Path(args.output)
 
     if not input_path.exists():
-        raise FileNotFoundError(f"Inp
+        raise FileNotFoundError(f"Input file not found: {input_path}")
+
+    print("==============================================")
+    print("Input style augmentation (T1/T3 slang & typos)")
+    print("==============================================")
+    print(f"Input:                 {input_path}")
+    print(f"Output:                {output_path}")
+    print(f"T1 aug per sample:     {args.t1_aug_per_sample}")
+    print(f"T3 aug per sample:     {args.t3_aug_per_sample}")
+    print(f"Seed:                  {args.seed}")
+    print()
+
+    process_file(
+        input_path=input_path,
+        output_path=output_path,
+        t1_aug_per_sample=args.t1_aug_per_sample,
+        t3_aug_per_sample=args.t3_aug_per_sample,
+        seed=args.seed,
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -17,8 +17,11 @@
 #   6. DeBERTa-v3-base
 #   7. DeBERTa-v3-large
 #
-# Optional: Set custom parameters via environment variables
-#   DATA_DIR=data/processed ./scripts/train_all_transformers.sh  # use original data
+# Optional: Choose dataset + override parameters via args / environment variables
+#   ./scripts/train_all_transformers.sh processed               # use original processed data (default)
+#   ./scripts/train_all_transformers.sh slang                   # use slang-augmented data (data/slang_processed)
+#   DATASET=slang ./scripts/train_all_transformers.sh           # same as above
+#   DATA_DIR=data/some_other_dir ./scripts/train_all_transformers.sh  # explicit override (highest priority)
 #   MAX_SEQ_LENGTH=128 ./scripts/train_all_transformers.sh
 #   NUM_EPOCHS=5 ./scripts/train_all_transformers.sh
 
@@ -59,11 +62,42 @@ LEARNING_RATE=${LEARNING_RATE:-2e-5}
 WEIGHT_DECAY=${WEIGHT_DECAY:-0.01}
 WARMUP_RATIO=${WARMUP_RATIO:-0.1}
 SEED=${SEED:-42}
-DATA_DIR=${DATA_DIR:-data/processed_augmented}
+
+# Dataset choice:
+# - processed -> data/processed
+# - slang     -> data/slang_processed
+DATASET=${1:-${DATASET:-processed}}
+
+if [ -z "${DATA_DIR:-}" ]; then
+    if [ "$DATASET" = "processed" ]; then
+        DATA_DIR="data/processed"
+    elif [ "$DATASET" = "slang" ]; then
+        DATA_DIR="data/slang_processed"
+    else
+        echo "Error: Unknown dataset '$DATASET'. Use: processed | slang"
+        exit 1
+    fi
+fi
+
+# Output root (separate results to avoid overwriting)
+# You can override via env var:
+#   OUTPUT_ROOT=results/transformer_custom ./scripts/train_all_transformers.sh slang
+if [ -z "${OUTPUT_ROOT:-}" ]; then
+    if [ "$DATASET" = "processed" ]; then
+        OUTPUT_ROOT="results/transformer_processed"
+    elif [ "$DATASET" = "slang" ]; then
+        OUTPUT_ROOT="results/transformer_slang"
+    else
+        echo "Error: Unknown dataset '$DATASET'. Use: processed | slang"
+        exit 1
+    fi
+fi
 
 echo ""
 echo "Configuration:"
+echo "  Dataset:            $DATASET"
 echo "  Data directory:      $DATA_DIR"
+echo "  Output root:         $OUTPUT_ROOT"
 echo "  Max sequence length: $MAX_SEQ_LENGTH"
 echo "  Number of epochs:    $NUM_EPOCHS"
 echo "  Train batch size:    $TRAIN_BATCH_SIZE"
@@ -132,6 +166,7 @@ for i in "${!MODELS[@]}"; do
     python -m src.train_transformer \
         --model_name "$MODEL_NAME" \
         --data_dir "$DATA_DIR" \
+        --output_root "$OUTPUT_ROOT" \
         --max_seq_length "$MAX_SEQ_LENGTH" \
         --num_train_epochs "$NUM_EPOCHS" \
         --train_batch_size "$TRAIN_BATCH_SIZE" \
@@ -174,12 +209,12 @@ echo "Models trained:"
 for MODEL in "${MODELS[@]}"; do
     MODEL_SLUG="${MODEL//\//-}"
     echo "  ✓ $MODEL"
-    echo "    Results: results/transformer/$MODEL_SLUG/"
+    echo "    Results: $OUTPUT_ROOT/$MODEL_SLUG/"
 done
 echo ""
 echo "View results:"
-echo "  cat results/transformer/*/metrics.json"
-echo "  cat results/transformer/*/report.txt"
+echo "  cat $OUTPUT_ROOT/*/metrics.json"
+echo "  cat $OUTPUT_ROOT/*/report.txt"
 echo ""
 echo "Next steps:"
 echo "  - Generate model comparison plots"

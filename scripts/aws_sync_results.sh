@@ -55,11 +55,15 @@ echo ""
 # Download results
 # ============================================================
 
-EC2_PROJECT_PATH="~/projects/nlp-multitype-proj"
+#
+# Project path on EC2
+# - Older docs used: ~/projects/nlp-multitype-proj
+# - Current setup script (`scripts/aws_ec2_setup.sh`) uses: /home/ubuntu/nlp-multitype-proj
+#
+EC2_PROJECT_PATH="/home/ubuntu/nlp-multitype-proj"
 LOCAL_DEST="./results_from_ec2"
 
 echo "Downloading results from EC2..."
-echo "  Source: $EC2_HOST:$EC2_PROJECT_PATH/results/"
 echo "  Destination: $LOCAL_DEST/"
 echo ""
 
@@ -68,12 +72,32 @@ mkdir -p "$LOCAL_DEST"
 
 # Download results directory
 echo "Syncing results/..."
-scp -i "$SSH_KEY" -r "$EC2_HOST:$EC2_PROJECT_PATH/results" "$LOCAL_DEST/" || echo "  (results/ may not exist yet)"
+if scp -i "$SSH_KEY" -r "$EC2_HOST:$EC2_PROJECT_PATH/results" "$LOCAL_DEST/" 2>/dev/null; then
+    echo "  ✓ Downloaded from: $EC2_PROJECT_PATH/results"
+else
+    # Backward-compatible fallback for older setups
+    FALLBACK_EC2_PROJECT_PATH="~/projects/nlp-multitype-proj"
+    if scp -i "$SSH_KEY" -r "$EC2_HOST:$FALLBACK_EC2_PROJECT_PATH/results" "$LOCAL_DEST/" 2>/dev/null; then
+        echo "  ✓ Downloaded from: $FALLBACK_EC2_PROJECT_PATH/results"
+    else
+        echo "  (results/ not found yet in '$EC2_PROJECT_PATH' or '$FALLBACK_EC2_PROJECT_PATH')"
+    fi
+fi
 
 # Download reports directory (if exists)
 echo ""
 echo "Syncing reports/..."
-scp -i "$SSH_KEY" -r "$EC2_HOST:$EC2_PROJECT_PATH/reports" "$LOCAL_DEST/" 2>/dev/null || echo "  (reports/ may not exist yet)"
+if scp -i "$SSH_KEY" -r "$EC2_HOST:$EC2_PROJECT_PATH/reports" "$LOCAL_DEST/" 2>/dev/null; then
+    echo "  ✓ Downloaded from: $EC2_PROJECT_PATH/reports"
+else
+    # Backward-compatible fallback for older setups
+    FALLBACK_EC2_PROJECT_PATH="~/projects/nlp-multitype-proj"
+    if scp -i "$SSH_KEY" -r "$EC2_HOST:$FALLBACK_EC2_PROJECT_PATH/reports" "$LOCAL_DEST/" 2>/dev/null; then
+        echo "  ✓ Downloaded from: $FALLBACK_EC2_PROJECT_PATH/reports"
+    else
+        echo "  (reports/ not found yet in '$EC2_PROJECT_PATH' or '$FALLBACK_EC2_PROJECT_PATH')"
+    fi
+fi
 
 echo ""
 echo "========================================================================"

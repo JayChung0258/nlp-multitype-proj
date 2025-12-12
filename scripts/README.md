@@ -17,10 +17,13 @@ Helper scripts for local and AWS EC2 workflows.
 ```
 
 **Trains these models:**
-1. DistilBERT-base-uncased (~20 min on GPU)
-2. BERT-base-uncased (~30 min on GPU)
-3. RoBERTa-base (~30 min on GPU)
-4. DeBERTa-v3-base (~40 min on GPU)
+1. DistilBERT-base-uncased
+2. BERT-base-uncased
+3. RoBERTa-base
+4. ALBERT-base-v2
+5. ELECTRA-base-discriminator
+6. DeBERTa-v3-base
+7. DeBERTa-v3-large
 
 **Default configuration:**
 - Max sequence length: 256
@@ -31,6 +34,10 @@ Helper scripts for local and AWS EC2 workflows.
 - Weight decay: 0.01
 - Warmup ratio: 0.1
 - Random seed: 42
+- Dataset choice:
+  - `processed` -> `data/processed` (default)
+  - `slang` -> `data/slang_processed`
+  - Override with `DATA_DIR=...` (highest priority)
 
 **Customize via environment variables:**
 ```bash
@@ -42,9 +49,9 @@ TRAIN_BATCH_SIZE=8 EVAL_BATCH_SIZE=16 ./scripts/train_all_transformers.sh
 ```
 
 **Estimated time:**
-- **On CPU/MPS:** ~6-8 hours total
-- **On GPU (g4dn.xlarge):** ~1.5-2 hours total
-- **On GPU (g5.xlarge):** ~1 hour total
+- **On CPU/MPS:** ~12-15 hours total (not recommended)
+- **On GPU (g4dn.xlarge):** ~3-4 hours total
+- **On GPU (g5.xlarge):** ~2-3 hours total
 
 **Output:** Each model's results saved to `results/transformer/<model-slug>/`
 

@@ -5,7 +5,6 @@
 ### 1. AWS Helper Scripts (`scripts/`)
 
 - **`aws_ec2_setup.sh`** (4.8 KB) — Automated environment setup on fresh EC2 instance
-- **`aws_sync_data.sh`** (3.0 KB) — Sync data between local and EC2 (bidirectional)
 - **`aws_sync_results.sh`** (2.9 KB) — Download results from EC2 to local
 - **`README.md`** — Documentation for all scripts
 
@@ -48,8 +47,8 @@ All scripts are executable (`chmod +x`) and tested.
 
 **2. Upload data:**
 ```bash
-# From local
-./scripts/aws_sync_data.sh upload ubuntu@<EC2_IP> ~/.ssh/key.pem
+# From local (example using scp)
+scp -i ~/.ssh/key.pem -r data/slang_processed ubuntu@<EC2_IP>:/home/ubuntu/nlp-multitype-proj/data/
 ```
 
 **3. Train on EC2:**
@@ -123,7 +122,6 @@ print(is_running_on_ec2())  # False on local, True on EC2
 nlp-multitype-proj/
 ├── scripts/                  # NEW! AWS helper scripts
 │   ├── aws_ec2_setup.sh
-│   ├── aws_sync_data.sh
 │   ├── aws_sync_results.sh
 │   └── README.md
 ├── configs/
@@ -176,7 +174,7 @@ nlp-multitype-proj/
 1. ✅ Push code to GitHub
 2. Launch EC2 instance (g4dn.xlarge recommended)
 3. Run `scripts/aws_ec2_setup.sh` on EC2
-4. Upload data using `scripts/aws_sync_data.sh`
+4. Upload data (e.g., `scp` your `data/slang_processed/` directory to EC2, if using slang dataset)
 5. Train all models on EC2
 6. Download results using `scripts/aws_sync_results.sh`
 7. Stop/terminate EC2 instance

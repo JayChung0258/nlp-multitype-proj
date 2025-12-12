@@ -38,7 +38,7 @@ Local Machine                    AWS EC2 (GPU)                Local Machine
    to GitHub                         Setup environment
                                      
                                   3. Train models
-                                     (1.5-2 hours)
+                                     (choose dataset: processed or slang_processed)
                                      
 4. Download      <─────────────── 5. Results ready
    results                           
@@ -164,7 +164,7 @@ chmod +x aws_ec2_setup.sh
 ./aws_ec2_setup.sh
 
 # OR if you already cloned the repo manually:
-cd ~/projects/nlp-multitype-proj
+cd /home/ubuntu/nlp-multitype-proj
 ./scripts/aws_ec2_setup.sh
 ```
 
@@ -173,7 +173,7 @@ cd ~/projects/nlp-multitype-proj
 ======================================================================
 Setup Complete!
 ======================================================================
-Project location: /home/ubuntu/projects/nlp-multitype-proj
+Project location: /home/ubuntu/nlp-multitype-proj
 ...
 CUDA available: True
 ```
@@ -205,7 +205,8 @@ python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
 
 # Verify data
 ls -lh data/processed/
-# Should show train/val/test JSONL files
+ls -lh data/slang_processed/
+# Should show: train_4class.jsonl, val_4class.jsonl, test_4class.jsonl, manifest.json
 ```
 
 ---
@@ -215,16 +216,31 @@ ls -lh data/processed/
 ### Verify Environment
 
 ```bash
-cd ~/projects/nlp-multitype-proj
+cd /home/ubuntu/nlp-multitype-proj
 source venv/bin/activate
 
 # Check data
 ls data/processed/
-# Should see: train_4class.jsonl, val_4class.jsonl, test_4class.jsonl, manifest.json
+ls data/slang_processed/
+# Each should contain: train_4class.jsonl, val_4class.jsonl, test_4class.jsonl, manifest.json (slang_processed only)
 
 # Check GPU
 nvidia-smi
 # Should show GPU information
+```
+
+### Data: Ensure `data/slang_processed/` is present on EC2 (if using slang dataset)
+
+This project trains from a directory containing:
+- `train_4class.jsonl`
+- `val_4class.jsonl`
+- `test_4class.jsonl`
+
+If your slang-processed data is only on your local machine, copy it to EC2:
+
+```bash
+# On your local machine (repo root)
+scp -i ~/.ssh/my-ec2-key.pem -r data/slang_processed ubuntu@<EC2_PUBLIC_IP>:/home/ubuntu/nlp-multitype-proj/data/
 ```
 
 ### Train All Models (Recommended)
@@ -239,11 +255,15 @@ tmux new -s training
 source venv/bin/activate
 
 # Train all transformers
+# - Default: processed
 ./scripts/train_all_transformers.sh
+#
+# - Slang-processed dataset:
+./scripts/train_all_transformers.sh slang
 
 # Expected output:
 # ======================================================================
-# [1/4] Training: distilbert-base-uncased
+# [1/7] Training: distilbert-base-uncased
 # ======================================================================
 # ...
 # [2/4] Training: bert-base-uncased
@@ -257,12 +277,15 @@ source venv/bin/activate
 # tmux attach -t training
 ```
 
-**Estimated time on g4dn.xlarge:**
+**Estimated time on g4dn.xlarge (7 models):**
 - DistilBERT: ~20 minutes
 - BERT: ~30 minutes
 - RoBERTa: ~30 minutes
-- DeBERTa: ~40 minutes
-- **Total: ~2 hours**
+- ALBERT: ~15 minutes
+- ELECTRA: ~15 minutes
+- DeBERTa-v3-base: ~40 minutes
+- DeBERTa-v3-large: ~60-90 minutes
+- **Total: ~3-4 hours**
 
 ### Train Individual Models
 
@@ -270,11 +293,12 @@ source venv/bin/activate
 source venv/bin/activate
 
 # Train specific model
-python -m src.train_transformer --model_name distilbert-base-uncased
+python -m src.train_transformer --model_name distilbert-base-uncased --data_dir data/slang_processed
 
 # With custom settings
 python -m src.train_transformer \
     --model_name bert-base-uncased \
+    --data_dir data/slang_processed \
     --max_seq_length 128 \
     --train_batch_size 8 \
     --num_train_epochs 5
@@ -399,7 +423,7 @@ aws ec2 terminate-instances --instance-ids i-xxxxxxxxxxxxx
 
 **4. Run Multiple Models in One Session**
 
-✅ **Good:** Launch → Train all 4 models → Download results → Terminate  
+✅ **Good:** Launch → Train all models → Download results → Terminate  
 ❌ **Bad:** Launch → Train 1 model → Terminate → Repeat 4 times
 
 ### Monitor Costs
@@ -665,7 +689,7 @@ ssh -i ~/.ssh/my-ec2-key.pem ubuntu@54.123.45.67
 
 # === Now on EC2 ===
 
-cd ~/projects/nlp-multitype-proj
+cd /home/ubuntu/nlp-multitype-proj
 source venv/bin/activate
 
 # Use tmux to prevent disconnection issues

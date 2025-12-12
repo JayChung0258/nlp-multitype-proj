@@ -249,6 +249,7 @@ temp/
 aws_credentials.txt
 *.pem
 *.key
+/key
 
 # Environment variables
 .env

@@ -1,0 +1,75 @@
+{
+  "created_at": "2025-12-12T00:00:00",
+  "description": "Style-augmented 4-class dataset (slang + typos for T1/T3, NO size increase)",
+  "augmentation_type": "style_overwrite",
+  "augmentation_config": {
+    "script": "src/input_style_augmentation.py",
+    "seed": 42,
+    "t1_style": {
+      "replace_prob": 0.3,
+      "insert_prob": 0.6,
+      "max_insertions": 2,
+      "max_typos": 1,
+      "description": "Slang replacements + insertions + character typos"
+    },
+    "t3_style": {
+      "replace_prob": 0.15,
+      "insert_prob": 0.3,
+      "max_insertions": 1,
+      "description": "Light slang replacements + insertions, no typos"
+    },
+    "t2_t4_style": "unchanged"
+  },
+  "files": {
+    "train_4class.jsonl": {
+      "total_samples": 13966,
+      "label_distribution": {
+        "T1": 3500,
+        "T2": 3499,
+        "T3": 3468,
+        "T4": 3499
+      },
+      "modified_samples": {
+        "T1": 3500,
+        "T3": 3468,
+        "T2_T4": 0
+      }
+    },
+    "val_4class.jsonl": {
+      "total_samples": 2996,
+      "label_distribution": {
+        "T1": 750,
+        "T2": 749,
+        "T3": 747,
+        "T4": 750
+      },
+      "modified_samples": {
+        "T1": 750,
+        "T3": 747,
+        "T2_T4": 0
+      }
+    },
+    "test_4class.jsonl": {
+      "total_samples": 2997,
+      "label_distribution": {
+        "T1": 750,
+        "T2": 750,
+        "T3": 747,
+        "T4": 750
+      },
+      "modified_samples": {
+        "T1": 750,
+        "T3": 747,
+        "T2_T4": 0
+      }
+    }
+  },
+  "notes": [
+    "This augmentation does NOT increase dataset size",
+    "Only T1 and T3 text is modified in-place",
+    "T2 and T4 (AI-generated) remain unchanged",
+    "Each row has 'style_aug' metadata field",
+    "Same row count as data/processed/ (non-augmented version)"
+  ]
+}
+

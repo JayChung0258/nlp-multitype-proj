@@ -679,6 +679,12 @@ def parse_args():
         help='Path to data config file (default: configs/data_config.yaml)'
     )
     parser.add_argument(
+        '--data_dir',
+        type=str,
+        default=None,
+        help='Override data directory (default: use value from config, typically data/processed)'
+    )
+    parser.add_argument(
         '--max_seq_length',
         type=int,
         default=256,
@@ -826,7 +832,14 @@ def main():
     # Step 1: Load configuration and data
     print("\n[1/7] Loading configuration and data")
     config = load_config(args.config)
-    processed_dir = config.get('processed_dir', 'data/processed')
+    
+    # Use --data_dir if provided, otherwise fall back to config
+    if args.data_dir:
+        processed_dir = args.data_dir
+        print(f"Using data directory override: {processed_dir}")
+    else:
+        processed_dir = config.get('processed_dir', 'data/processed')
+        print(f"Using data directory from config: {processed_dir}")
     
     train_df, val_df, test_df = load_splits(processed_dir)
     

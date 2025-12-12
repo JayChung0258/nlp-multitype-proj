@@ -12,9 +12,13 @@
 #   1. DistilBERT-base-uncased
 #   2. BERT-base-uncased
 #   3. RoBERTa-base
-#   4. DeBERTa-v3-base
+#   4. ALBERT-base-v2
+#   5. ELECTRA-base-discriminator
+#   6. DeBERTa-v3-base
+#   7. DeBERTa-v3-large
 #
 # Optional: Set custom parameters via environment variables
+#   DATA_DIR=data/processed ./scripts/train_all_transformers.sh  # use original data
 #   MAX_SEQ_LENGTH=128 ./scripts/train_all_transformers.sh
 #   NUM_EPOCHS=5 ./scripts/train_all_transformers.sh
 
@@ -24,15 +28,19 @@ echo "========================================================================"
 echo "NLP Multi-Type Classification: Train All Transformer Models"
 echo "========================================================================"
 echo ""
-echo "This script will train 4 transformer models sequentially:"
+echo "This script will train 7 transformer models sequentially:"
 echo "  1. DistilBERT-base-uncased"
 echo "  2. BERT-base-uncased"
 echo "  3. RoBERTa-base"
-echo "  4. DeBERTa-v3-base"
+echo "  4. ALBERT-base-v2"
+echo "  5. ELECTRA-base-discriminator"
+echo "  6. DeBERTa-v3-base"
+echo "  7. DeBERTa-v3-large"
 echo ""
 echo "Estimated time:"
-echo "  - On CPU/MPS: ~6-8 hours total"
-echo "  - On GPU (g4dn.xlarge): ~1.5-2 hours total"
+echo "  - On CPU/MPS: ~12-15 hours total (not recommended)"
+echo "  - On GPU (g4dn.xlarge): ~3-4 hours total"
+echo "  - On GPU (g5.xlarge): ~2-3 hours total"
 echo ""
 echo "========================================================================"
 
@@ -51,9 +59,11 @@ LEARNING_RATE=${LEARNING_RATE:-2e-5}
 WEIGHT_DECAY=${WEIGHT_DECAY:-0.01}
 WARMUP_RATIO=${WARMUP_RATIO:-0.1}
 SEED=${SEED:-42}
+DATA_DIR=${DATA_DIR:-data/processed_augmented}
 
 echo ""
 echo "Configuration:"
+echo "  Data directory:      $DATA_DIR"
 echo "  Max sequence length: $MAX_SEQ_LENGTH"
 echo "  Number of epochs:    $NUM_EPOCHS"
 echo "  Train batch size:    $TRAIN_BATCH_SIZE"
@@ -88,7 +98,10 @@ MODELS=(
     "distilbert-base-uncased"
     "bert-base-uncased"
     "roberta-base"
+    "albert-base-v2"
+    "google/electra-base-discriminator"
     "microsoft/deberta-v3-base"
+    "microsoft/deberta-v3-large"
 )
 
 TOTAL_MODELS=${#MODELS[@]}
@@ -118,6 +131,7 @@ for i in "${!MODELS[@]}"; do
     # Train the model
     python -m src.train_transformer \
         --model_name "$MODEL_NAME" \
+        --data_dir "$DATA_DIR" \
         --max_seq_length "$MAX_SEQ_LENGTH" \
         --num_train_epochs "$NUM_EPOCHS" \
         --train_batch_size "$TRAIN_BATCH_SIZE" \

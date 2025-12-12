@@ -1,0 +1,63 @@
+{
+  "model_name": "bert-base-uncased",
+  "model_slug": "bert-base-uncased",
+  "timestamp_utc": "2025-12-12T02:36:54.749830Z",
+  "train_samples": 13966,
+  "val_samples": 2996,
+  "test_samples": 2997,
+  "max_seq_length": 256,
+  "train_batch_size": 16,
+  "eval_batch_size": 32,
+  "num_train_epochs": 3.0,
+  "learning_rate": 2e-05,
+  "weight_decay": 0.01,
+  "warmup_ratio": 0.1,
+  "seed": 42,
+  "num_parameters": 109485316,
+  "accuracy_test": 0.8104771438104772,
+  "macro_f1_test": 0.8109364584292874,
+  "f1_per_class_test": {
+    "T1": 0.927536231884058,
+    "T2": 0.797583081570997,
+    "T3": 0.7650816181689141,
+    "T4": 0.7535449020931803
+  },
+  "confusion_matrix_test": [
+    [
+      672,
+      11,
+      50,
+      17
+    ],
+    [
+      4,
+      660,
+      21,
+      65
+    ],
+    [
+      20,
+      97,
+      539,
+      91
+    ],
+    [
+      3,
+      137,
+      52,
+      558
+    ]
+  ],
+  "accuracy_val": 0.8194259012016022,
+  "macro_f1_val": 0.819605414908495,
+  "f1_per_class_val": {
+    "T1": 0.9394969408565602,
+    "T2": 0.8002473716759431,
+    "T3": 0.7718309859154929,
+    "T4": 0.7668463611859838
+  },
+  "train_time_sec": 494.25221876700016,
+  "eval_time_test_sec": 9.018901699999788,
+  "throughput_samples_per_sec": 332.30210281591945,
+  "model_size_mb": 418.577
+}

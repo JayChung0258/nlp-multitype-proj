@@ -15,7 +15,6 @@
 #   4. ALBERT-base-v2
 #   5. ELECTRA-base-discriminator
 #   6. DeBERTa-v3-base
-#   7. DeBERTa-v3-large
 #
 # Optional: Choose dataset + override parameters via args / environment variables
 #   ./scripts/train_all_transformers.sh processed               # use original processed data (default)
@@ -34,19 +33,18 @@ echo "========================================================================"
 echo "NLP Multi-Type Classification: Train All Transformer Models"
 echo "========================================================================"
 echo ""
-echo "This script will train 7 transformer models sequentially:"
+echo "This script will train 6 transformer models sequentially:"
 echo "  1. DistilBERT-base-uncased"
 echo "  2. BERT-base-uncased"
 echo "  3. RoBERTa-base"
 echo "  4. ALBERT-base-v2"
 echo "  5. ELECTRA-base-discriminator"
 echo "  6. DeBERTa-v3-base"
-echo "  7. DeBERTa-v3-large"
 echo ""
 echo "Estimated time:"
 echo "  - On CPU/MPS: ~12-15 hours total (not recommended)"
-echo "  - On GPU (g4dn.xlarge): ~3-4 hours total"
-echo "  - On GPU (g5.xlarge): ~2-3 hours total"
+echo "  - On GPU (g4dn.xlarge): ~2-3 hours total"
+echo "  - On GPU (g5.xlarge): ~1.5-2.5 hours total"
 echo ""
 echo "========================================================================"
 
@@ -87,7 +85,7 @@ fi
 #   OUTPUT_ROOT=results/transformer_custom ./scripts/train_all_transformers.sh slang
 if [ -z "${OUTPUT_ROOT:-}" ]; then
     if [ "$DATASET" = "processed" ]; then
-        OUTPUT_ROOT="results/transformer_processed"
+        OUTPUT_ROOT="results/transformer"
     elif [ "$DATASET" = "slang" ]; then
         OUTPUT_ROOT="results/transformer_slang"
     else
@@ -110,7 +108,6 @@ echo "  Random seed:         $SEED"
 echo ""
 echo "  Skip completed:      ${SKIP_COMPLETED:-1} (set SKIP_COMPLETED=0 to retrain)"
 echo "  Force retrain:       ${FORCE_RETRAIN:-0}"
-echo "  Skip DeBERTa-large:  ${SKIP_DEBERTA_LARGE:-0}"
 echo "  Skip models:         ${SKIP_MODELS:-<none>} (comma-separated HF ids)"
 echo ""
 
@@ -143,7 +140,6 @@ MODELS=(
     "albert-base-v2"
     "google/electra-base-discriminator"
     "microsoft/deberta-v3-base"
-    "microsoft/deberta-v3-large"
 )
 
 TOTAL_MODELS=${#MODELS[@]}
@@ -161,12 +157,7 @@ echo ""
 should_skip_model() {
     local model_name="$1"
 
-    # Explicit skip for DeBERTa-large (common OOM on T4 16GB)
-    if [ "${SKIP_DEBERTA_LARGE:-0}" = "1" ] && [ "$model_name" = "microsoft/deberta-v3-large" ]; then
-        return 0
-    fi
-
-    # Comma-separated list of models to skip: SKIP_MODELS="microsoft/deberta-v3-large,roberta-base"
+    # Comma-separated list of models to skip: SKIP_MODELS="roberta-base,microsoft/deberta-v3-base"
     if [ -n "${SKIP_MODELS:-}" ]; then
         local IFS=',' read -r -a _skip_arr <<< "${SKIP_MODELS}"
         for m in "${_skip_arr[@]}"; do

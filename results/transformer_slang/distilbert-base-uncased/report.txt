@@ -1,0 +1,57 @@
+Transformer Model - Classification Report
+======================================================================
+
+MODEL: distilbert-base-uncased
+Generated: 2025-12-12T02:28:06.741522Z
+
+TRAINING CONFIGURATION
+----------------------------------------------------------------------
+Max sequence length:   256
+Train batch size:      16
+Eval batch size:       32
+Epochs:                3.0
+Learning rate:         2e-05
+Weight decay:          0.01
+Warmup ratio:          0.1
+Random seed:           42
+Trainable parameters:  66,956,548
+
+VALIDATION SET METRICS
+----------------------------------------------------------------------
+Accuracy:  0.8168
+Macro-F1:  0.8169
+
+F1 per class:
+  T1 (Human Original):       0.9389
+  T2 (LLM Generated):        0.8020
+  T3 (Human Paraphrased):    0.7692
+  T4 (LLM Paraphrased):      0.7576
+
+TEST SET METRICS (FINAL)
+----------------------------------------------------------------------
+Accuracy:  0.8115
+Macro-F1:  0.8117
+
+F1 per class:
+  T1 (Human Original):       0.9311
+  T2 (LLM Generated):        0.8030
+  T3 (Human Paraphrased):    0.7601
+  T4 (LLM Paraphrased):      0.7525
+
+CONFUSION MATRIX (TEST)
+----------------------------------------------------------------------
+          Predicted
+          T1    T2    T3    T4
+Actual
+  T1     682     8    47    13
+  T2       2   644    30    74
+  T3      25    86   548    88
+  T4       6   116    70   558
+
+EFFICIENCY METRICS
+----------------------------------------------------------------------
+Training time:     253.80 seconds (4.23 minutes)
+Test eval time:    4.51 seconds
+Throughput:        3.5 samples/sec
+
+======================================================================

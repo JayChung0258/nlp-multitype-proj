@@ -381,13 +381,13 @@ aws ec2 stop-instances --instance-ids i-xxxxx
 
 ### Available Scripts
 
-- **`scripts/train_all_transformers.sh`** — Train all 7 transformer models (choose: `processed` (default) or `slang`)
+- **`scripts/train_all_transformers.sh`** — Train all 6 transformer models (choose: `processed` (default) or `slang`)
 - **`scripts/aws_ec2_setup.sh`** — Automated EC2 environment setup  
 - **`scripts/aws_sync_results.sh`** — Download results from EC2
 
 ### Cost Estimate
 
-**Training all 7 transformer models on g4dn.xlarge (processed or slang):**
+**Training all 6 transformer models on g4dn.xlarge (processed or slang):**
 - Time: ~3-4 hours
 - Cost (Spot): depends on spot price and interruptions
 - Cost (On-Demand): depends on region/pricing

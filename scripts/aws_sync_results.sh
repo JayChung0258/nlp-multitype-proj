@@ -55,12 +55,6 @@ echo ""
 # Download results
 # ============================================================
 
-#
-# Project path on EC2
-# - Older docs used: ~/projects/nlp-multitype-proj
-# - Current setup script (`scripts/aws_ec2_setup.sh`) uses: /home/ubuntu/nlp-multitype-proj
-#
-EC2_PROJECT_PATH="/home/ubuntu/nlp-multitype-proj"
 LOCAL_DEST="./results_from_ec2"
 
 echo "Downloading results from EC2..."
@@ -70,33 +64,44 @@ echo ""
 # Create local directory
 mkdir -p "$LOCAL_DEST"
 
+#
+# Project paths on EC2 (we try multiple to support both Ubuntu + Amazon Linux)
+# - Amazon Linux default user: ec2-user -> /home/ec2-user/nlp-multitype-proj
+# - Our Ubuntu user-data script: /home/ubuntu/nlp-multitype-proj
+# - Older docs used: ~/projects/nlp-multitype-proj
+#
+EC2_PROJECT_PATH_CANDIDATES=(
+    "/home/ec2-user/nlp-multitype-proj"
+    "/home/ubuntu/nlp-multitype-proj"
+    "~/projects/nlp-multitype-proj"
+)
+
+download_dir() {
+    local remote_subdir="$1"  # e.g., results or reports
+    local ok=1
+
+    for base in "${EC2_PROJECT_PATH_CANDIDATES[@]}"; do
+        if scp -i "$SSH_KEY" -r "$EC2_HOST:$base/$remote_subdir" "$LOCAL_DEST/" 2>/dev/null; then
+            echo "  ✓ Downloaded from: $base/$remote_subdir"
+            ok=0
+            break
+        fi
+    done
+
+    return $ok
+}
+
 # Download results directory
 echo "Syncing results/..."
-if scp -i "$SSH_KEY" -r "$EC2_HOST:$EC2_PROJECT_PATH/results" "$LOCAL_DEST/" 2>/dev/null; then
-    echo "  ✓ Downloaded from: $EC2_PROJECT_PATH/results"
-else
-    # Backward-compatible fallback for older setups
-    FALLBACK_EC2_PROJECT_PATH="~/projects/nlp-multitype-proj"
-    if scp -i "$SSH_KEY" -r "$EC2_HOST:$FALLBACK_EC2_PROJECT_PATH/results" "$LOCAL_DEST/" 2>/dev/null; then
-        echo "  ✓ Downloaded from: $FALLBACK_EC2_PROJECT_PATH/results"
-    else
-        echo "  (results/ not found yet in '$EC2_PROJECT_PATH' or '$FALLBACK_EC2_PROJECT_PATH')"
-    fi
+if ! download_dir "results"; then
+    echo "  (results/ not found in any known project path on EC2)"
 fi
 
 # Download reports directory (if exists)
 echo ""
 echo "Syncing reports/..."
-if scp -i "$SSH_KEY" -r "$EC2_HOST:$EC2_PROJECT_PATH/reports" "$LOCAL_DEST/" 2>/dev/null; then
-    echo "  ✓ Downloaded from: $EC2_PROJECT_PATH/reports"
-else
-    # Backward-compatible fallback for older setups
-    FALLBACK_EC2_PROJECT_PATH="~/projects/nlp-multitype-proj"
-    if scp -i "$SSH_KEY" -r "$EC2_HOST:$FALLBACK_EC2_PROJECT_PATH/reports" "$LOCAL_DEST/" 2>/dev/null; then
-        echo "  ✓ Downloaded from: $FALLBACK_EC2_PROJECT_PATH/reports"
-    else
-        echo "  (reports/ not found yet in '$EC2_PROJECT_PATH' or '$FALLBACK_EC2_PROJECT_PATH')"
-    fi
+if ! download_dir "reports"; then
+    echo "  (reports/ not found in any known project path on EC2)"
 fi
 
 echo ""
@@ -112,11 +117,11 @@ ls -lh "$LOCAL_DEST/" 2>/dev/null || echo "  (directory created but may be empty
 echo ""
 echo "View metrics:"
 echo "  cat $LOCAL_DEST/results/baseline/logreg_metrics.json"
-echo "  cat $LOCAL_DEST/results/transformer/*/metrics.json"
+echo "  cat $LOCAL_DEST/results/transformer_*/*/metrics.json"
 echo ""
 echo "View reports:"
 echo "  cat $LOCAL_DEST/results/baseline/logreg_report.txt"
-echo "  cat $LOCAL_DEST/results/transformer/*/report.txt"
+echo "  cat $LOCAL_DEST/results/transformer_*/*/report.txt"
 echo ""
 echo "========================================================================"
 

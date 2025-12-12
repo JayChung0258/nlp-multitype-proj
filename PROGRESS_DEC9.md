@@ -17,11 +17,7 @@
 - **Device:** MPS
 
 ### 3. DeBERTa-v3-large
-- **Macro-F1:** 0.6803
-- **T1:** 0.6366 | **T2:** 0.9194 | **T3:** 0.2503 | **T4:** 0.9149
-- **Status:** ❌ T3 class collapse (0.25)
-- **Training time:** 93.7 minutes (1.5 hours)
-- **Device:** MPS
+*(Archived: we are no longer running the large model in the 6-model pipeline due to GPU memory constraints on g4dn.xlarge/T4. Keeping this note for historical reference.)*
 
 ## Key Findings
 
@@ -40,7 +36,7 @@ Large models (DeBERTa-large, ALBERT) achieve excellent performance on easy class
 |-------|----------|----|----|----|----|--------|
 | **DeBERTa-v3-base** | **0.71** | 0.75 | 0.85 | **0.58** | 0.80 | ✅ **Best** |
 | RoBERTa-base | 0.65 | 0.70 | 0.80 | 0.52 | 0.75 | ✓ Good |
-| DeBERTa-v3-large | 0.68 | 0.64 | 0.92 | 0.25 | 0.91 | ✗ T3 failed |
+| DeBERTa-v3-large (archived) | 0.68 | 0.64 | 0.92 | 0.25 | 0.91 | ✗ T3 failed |
 | ALBERT-base-v2 | 0.61 | 0.66 | 0.87 | 0.05 | 0.87 | ✗ T3 failed |
 | BERT-base | 0.58 | 0.65 | 0.75 | 0.48 | 0.70 | ✓ Baseline |
 | ELECTRA-base | 0.56 | 0.37 | 0.74 | 0.47 | 0.66 | ✗ Poor |

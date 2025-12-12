@@ -23,7 +23,6 @@ Helper scripts for local and AWS EC2 workflows.
 4. ALBERT-base-v2
 5. ELECTRA-base-discriminator
 6. DeBERTa-v3-base
-7. DeBERTa-v3-large
 
 **Default configuration:**
 - Max sequence length: 256

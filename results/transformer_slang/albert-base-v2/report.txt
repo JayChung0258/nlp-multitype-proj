@@ -1,0 +1,57 @@
+Transformer Model - Classification Report
+======================================================================
+
+MODEL: albert-base-v2
+Generated: 2025-12-12T02:58:09.286082Z
+
+TRAINING CONFIGURATION
+----------------------------------------------------------------------
+Max sequence length:   256
+Train batch size:      16
+Eval batch size:       32
+Epochs:                3.0
+Learning rate:         2e-05
+Weight decay:          0.01
+Warmup ratio:          0.1
+Random seed:           42
+Trainable parameters:  11,686,660
+
+VALIDATION SET METRICS
+----------------------------------------------------------------------
+Accuracy:  0.8939
+Macro-F1:  0.8939
+
+F1 per class:
+  T1 (Human Original):       0.9040
+  T2 (LLM Generated):        0.8893
+  T3 (Human Paraphrased):    0.8881
+  T4 (LLM Paraphrased):      0.8941
+
+TEST SET METRICS (FINAL)
+----------------------------------------------------------------------
+Accuracy:  0.8962
+Macro-F1:  0.8962
+
+F1 per class:
+  T1 (Human Original):       0.9082
+  T2 (LLM Generated):        0.8931
+  T3 (Human Paraphrased):    0.8908
+  T4 (LLM Paraphrased):      0.8926
+
+CONFUSION MATRIX (TEST)
+----------------------------------------------------------------------
+          Predicted
+          T1    T2    T3    T4
+Actual
+  T1     683     1    64     2
+  T2       1   677     7    65
+  T3      69     9   661     8
+  T4       1    79     5   665
+
+EFFICIENCY METRICS
+----------------------------------------------------------------------
+Training time:     688.72 seconds (11.48 minutes)
+Test eval time:    16.33 seconds
+Throughput:        1.0 samples/sec
+
+======================================================================

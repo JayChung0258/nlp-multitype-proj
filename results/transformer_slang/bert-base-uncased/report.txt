@@ -1,0 +1,57 @@
+Transformer Model - Classification Report
+======================================================================
+
+MODEL: bert-base-uncased
+Generated: 2025-12-12T02:36:55.238232Z
+
+TRAINING CONFIGURATION
+----------------------------------------------------------------------
+Max sequence length:   256
+Train batch size:      16
+Eval batch size:       32
+Epochs:                3.0
+Learning rate:         2e-05
+Weight decay:          0.01
+Warmup ratio:          0.1
+Random seed:           42
+Trainable parameters:  109,485,316
+
+VALIDATION SET METRICS
+----------------------------------------------------------------------
+Accuracy:  0.8194
+Macro-F1:  0.8196
+
+F1 per class:
+  T1 (Human Original):       0.9395
+  T2 (LLM Generated):        0.8002
+  T3 (Human Paraphrased):    0.7718
+  T4 (LLM Paraphrased):      0.7668
+
+TEST SET METRICS (FINAL)
+----------------------------------------------------------------------
+Accuracy:  0.8105
+Macro-F1:  0.8109
+
+F1 per class:
+  T1 (Human Original):       0.9275
+  T2 (LLM Generated):        0.7976
+  T3 (Human Paraphrased):    0.7651
+  T4 (LLM Paraphrased):      0.7535
+
+CONFUSION MATRIX (TEST)
+----------------------------------------------------------------------
+          Predicted
+          T1    T2    T3    T4
+Actual
+  T1     672    11    50    17
+  T2       4   660    21    65
+  T3      20    97   539    91
+  T4       3   137    52   558
+
+EFFICIENCY METRICS
+----------------------------------------------------------------------
+Training time:     494.25 seconds (8.24 minutes)
+Test eval time:    9.02 seconds
+Throughput:        1.8 samples/sec
+
+======================================================================

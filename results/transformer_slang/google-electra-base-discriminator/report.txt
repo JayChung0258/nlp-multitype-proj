@@ -1,0 +1,57 @@
+Transformer Model - Classification Report
+======================================================================
+
+MODEL: google/electra-base-discriminator
+Generated: 2025-12-12T03:09:16.001401Z
+
+TRAINING CONFIGURATION
+----------------------------------------------------------------------
+Max sequence length:   256
+Train batch size:      16
+Eval batch size:       32
+Epochs:                3.0
+Learning rate:         2e-05
+Weight decay:          0.01
+Warmup ratio:          0.1
+Random seed:           42
+Trainable parameters:  109,485,316
+
+VALIDATION SET METRICS
+----------------------------------------------------------------------
+Accuracy:  0.8388
+Macro-F1:  0.8384
+
+F1 per class:
+  T1 (Human Original):       0.9663
+  T2 (LLM Generated):        0.8145
+  T3 (Human Paraphrased):    0.7941
+  T4 (LLM Paraphrased):      0.7786
+
+TEST SET METRICS (FINAL)
+----------------------------------------------------------------------
+Accuracy:  0.8408
+Macro-F1:  0.8407
+
+F1 per class:
+  T1 (Human Original):       0.9579
+  T2 (LLM Generated):        0.8163
+  T3 (Human Paraphrased):    0.8025
+  T4 (LLM Paraphrased):      0.7862
+
+CONFUSION MATRIX (TEST)
+----------------------------------------------------------------------
+          Predicted
+          T1    T2    T3    T4
+Actual
+  T1     706    11    30     3
+  T2       3   691    21    35
+  T3      12   103   577    55
+  T4       3   138    63   546
+
+EFFICIENCY METRICS
+----------------------------------------------------------------------
+Training time:     624.51 seconds (10.41 minutes)
+Test eval time:    12.26 seconds
+Throughput:        1.3 samples/sec
+
+======================================================================

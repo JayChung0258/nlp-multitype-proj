@@ -1,0 +1,57 @@
+Transformer Model - Classification Report
+======================================================================
+
+MODEL: microsoft/deberta-v3-base
+Generated: 2025-12-12T03:26:01.839181Z
+
+TRAINING CONFIGURATION
+----------------------------------------------------------------------
+Max sequence length:   256
+Train batch size:      16
+Eval batch size:       32
+Epochs:                3.0
+Learning rate:         2e-05
+Weight decay:          0.01
+Warmup ratio:          0.1
+Random seed:           42
+Trainable parameters:  184,425,220
+
+VALIDATION SET METRICS
+----------------------------------------------------------------------
+Accuracy:  0.9433
+Macro-F1:  0.9434
+
+F1 per class:
+  T1 (Human Original):       0.9778
+  T2 (LLM Generated):        0.9166
+  T3 (Human Paraphrased):    0.9605
+  T4 (LLM Paraphrased):      0.9188
+
+TEST SET METRICS (FINAL)
+----------------------------------------------------------------------
+Accuracy:  0.9393
+Macro-F1:  0.9394
+
+F1 per class:
+  T1 (Human Original):       0.9681
+  T2 (LLM Generated):        0.9160
+  T3 (Human Paraphrased):    0.9590
+  T4 (LLM Paraphrased):      0.9143
+
+CONFUSION MATRIX (TEST)
+----------------------------------------------------------------------
+          Predicted
+          T1    T2    T3    T4
+Actual
+  T1     713     0    36     1
+  T2       1   709     4    36
+  T3       8     8   726     5
+  T4       1    81     1   667
+
+EFFICIENCY METRICS
+----------------------------------------------------------------------
+Training time:     949.28 seconds (15.82 minutes)
+Test eval time:    18.77 seconds
+Throughput:        0.9 samples/sec
+
+======================================================================

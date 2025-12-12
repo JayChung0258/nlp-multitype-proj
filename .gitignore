@@ -196,6 +196,10 @@ results/baseline/models/
 results/transformer/*/model/
 results/transformer/*/checkpoints/
 results/transformer/*/logs/
+results/transformer_slang/*/model/
+results/transformer_slang/*/checkpoints/
+results/transformer_slang/*/logs/
+results_from_ec2/
 
 # Model weight files (large - DO NOT PUSH)
 *.pt

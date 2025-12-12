@@ -277,14 +277,13 @@ source venv/bin/activate
 # tmux attach -t training
 ```
 
-**Estimated time on g4dn.xlarge (7 models):**
+**Estimated time on g4dn.xlarge (6 models):**
 - DistilBERT: ~20 minutes
 - BERT: ~30 minutes
 - RoBERTa: ~30 minutes
 - ALBERT: ~15 minutes
 - ELECTRA: ~15 minutes
 - DeBERTa-v3-base: ~40 minutes
-- DeBERTa-v3-large: ~60-90 minutes
 - **Total: ~3-4 hours**
 
 ### Train Individual Models

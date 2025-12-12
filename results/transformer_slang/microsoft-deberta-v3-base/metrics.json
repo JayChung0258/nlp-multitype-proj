@@ -1,0 +1,63 @@
+{
+  "model_name": "microsoft/deberta-v3-base",
+  "model_slug": "microsoft-deberta-v3-base",
+  "timestamp_utc": "2025-12-12T03:26:01.352498Z",
+  "train_samples": 13966,
+  "val_samples": 2996,
+  "test_samples": 2997,
+  "max_seq_length": 256,
+  "train_batch_size": 16,
+  "eval_batch_size": 32,
+  "num_train_epochs": 3.0,
+  "learning_rate": 2e-05,
+  "weight_decay": 0.01,
+  "warmup_ratio": 0.1,
+  "seed": 42,
+  "num_parameters": 184425220,
+  "accuracy_test": 0.9392726059392726,
+  "macro_f1_test": 0.939371689404304,
+  "f1_per_class_test": {
+    "T1": 0.9680923285811269,
+    "T2": 0.9160206718346253,
+    "T3": 0.9590488771466315,
+    "T4": 0.914324880054832
+  },
+  "confusion_matrix_test": [
+    [
+      713,
+      0,
+      36,
+      1
+    ],
+    [
+      1,
+      709,
+      4,
+      36
+    ],
+    [
+      8,
+      8,
+      726,
+      5
+    ],
+    [
+      1,
+      81,
+      1,
+      667
+    ]
+  ],
+  "accuracy_val": 0.9432576769025367,
+  "macro_f1_val": 0.943429288364965,
+  "f1_per_class_val": {
+    "T1": 0.9777777777777777,
+    "T2": 0.9165596919127086,
+    "T3": 0.9605351170568562,
+    "T4": 0.9188445667125172
+  },
+  "train_time_sec": 949.2787334340001,
+  "eval_time_test_sec": 18.77000687600048,
+  "throughput_samples_per_sec": 159.66962717696148,
+  "model_size_mb": 714.159
+}

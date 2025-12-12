@@ -85,6 +85,16 @@ models:
   # ------------------------------
   # Robust BERT variant, often better performance
   - name: roberta-base
+
+  # ------------------------------
+  # ALBERT
+  # ------------------------------
+  - name: albert-base-v2
+
+  # ------------------------------
+  # ELECTRA
+  # ------------------------------
+  - name: google/electra-base-discriminator
   
   # ------------------------------
   # DeBERTa-v3
@@ -99,13 +109,7 @@ models:
 # ============================================================
 # Uncomment to include in experiments
 
-optional_models:
-  # ------------------------------
-  # ELECTRA
-  # ------------------------------
-  # Efficient pre-training, good performance
-  - name: google/electra-base-discriminator
-    # learning_rate: 2.0e-5
+optional_models: []
 
 # ============================================================
 # TRAINING CONFIGURATION

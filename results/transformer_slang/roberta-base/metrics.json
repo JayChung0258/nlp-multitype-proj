@@ -1,0 +1,63 @@
+{
+  "model_name": "roberta-base",
+  "model_slug": "roberta-base",
+  "timestamp_utc": "2025-12-12T02:45:52.301131Z",
+  "train_samples": 13966,
+  "val_samples": 2996,
+  "test_samples": 2997,
+  "max_seq_length": 256,
+  "train_batch_size": 16,
+  "eval_batch_size": 32,
+  "num_train_epochs": 3.0,
+  "learning_rate": 2e-05,
+  "weight_decay": 0.01,
+  "warmup_ratio": 0.1,
+  "seed": 42,
+  "num_parameters": 124648708,
+  "accuracy_test": 0.9175842509175842,
+  "macro_f1_test": 0.9177644759393676,
+  "f1_per_class_test": {
+    "T1": 0.9561042524005487,
+    "T2": 0.8877805486284289,
+    "T3": 0.9447368421052632,
+    "T4": 0.8824362606232294
+  },
+  "confusion_matrix_test": [
+    [
+      697,
+      1,
+      50,
+      2
+    ],
+    [
+      1,
+      712,
+      4,
+      33
+    ],
+    [
+      10,
+      15,
+      718,
+      4
+    ],
+    [
+      0,
+      126,
+      1,
+      623
+    ]
+  ],
+  "accuracy_val": 0.9168891855807744,
+  "macro_f1_val": 0.9170683719358133,
+  "f1_per_class_val": {
+    "T1": 0.9548213081591369,
+    "T2": 0.8888888888888888,
+    "T3": 0.9409395973154362,
+    "T4": 0.883623693379791
+  },
+  "train_time_sec": 503.99466854,
+  "eval_time_test_sec": 8.24093294000022,
+  "throughput_samples_per_sec": 363.6724169241838,
+  "model_size_mb": 480.113
+}

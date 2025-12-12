@@ -27,6 +27,9 @@
 
 set -e  # Exit on error
 
+# Avoid noisy tokenizers fork warning on some EC2 setups (safe default)
+export TOKENIZERS_PARALLELISM=${TOKENIZERS_PARALLELISM:-false}
+
 echo "========================================================================"
 echo "NLP Multi-Type Classification: Train All Transformer Models"
 echo "========================================================================"
@@ -105,6 +108,11 @@ echo "  Eval batch size:     $EVAL_BATCH_SIZE"
 echo "  Learning rate:       $LEARNING_RATE"
 echo "  Random seed:         $SEED"
 echo ""
+echo "  Skip completed:      ${SKIP_COMPLETED:-1} (set SKIP_COMPLETED=0 to retrain)"
+echo "  Force retrain:       ${FORCE_RETRAIN:-0}"
+echo "  Skip DeBERTa-large:  ${SKIP_DEBERTA_LARGE:-0}"
+echo "  Skip models:         ${SKIP_MODELS:-<none>} (comma-separated HF ids)"
+echo ""
 
 # ============================================================
 # Ensure virtual environment is activated
@@ -150,15 +158,53 @@ echo ""
 # Train each model
 # ============================================================
 
+should_skip_model() {
+    local model_name="$1"
+
+    # Explicit skip for DeBERTa-large (common OOM on T4 16GB)
+    if [ "${SKIP_DEBERTA_LARGE:-0}" = "1" ] && [ "$model_name" = "microsoft/deberta-v3-large" ]; then
+        return 0
+    fi
+
+    # Comma-separated list of models to skip: SKIP_MODELS="microsoft/deberta-v3-large,roberta-base"
+    if [ -n "${SKIP_MODELS:-}" ]; then
+        local IFS=',' read -r -a _skip_arr <<< "${SKIP_MODELS}"
+        for m in "${_skip_arr[@]}"; do
+            # trim spaces
+            m="${m#"${m%%[![:space:]]*}"}"
+            m="${m%"${m##*[![:space:]]}"}"
+            if [ "$model_name" = "$m" ]; then
+                return 0
+            fi
+        done
+    fi
+
+    return 1
+}
+
 for i in "${!MODELS[@]}"; do
     MODEL_NAME="${MODELS[$i]}"
     MODEL_NUM=$((i + 1))
+    MODEL_SLUG="${MODEL_NAME//\//-}"
+    MODEL_OUT_DIR="${OUTPUT_ROOT}/${MODEL_SLUG}"
+    METRICS_PATH="${MODEL_OUT_DIR}/metrics.json"
     
     echo ""
     echo "========================================================================"
     echo "[$MODEL_NUM/$TOTAL_MODELS] Training: $MODEL_NAME"
     echo "========================================================================"
     echo ""
+
+    if should_skip_model "$MODEL_NAME"; then
+        echo "↷ Skipping (requested): $MODEL_NAME"
+        continue
+    fi
+
+    if [ "${FORCE_RETRAIN:-0}" != "1" ] && [ "${SKIP_COMPLETED:-1}" = "1" ] && [ -f "$METRICS_PATH" ]; then
+        echo "↷ Skipping (already completed): $MODEL_NAME"
+        echo "  Found: $METRICS_PATH"
+        continue
+    fi
     
     MODEL_START_TIME=$(date +%s)
     

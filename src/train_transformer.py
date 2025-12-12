@@ -20,7 +20,13 @@ import os
 from pathlib import Path
 from datetime import datetime
 from typing import Tuple, Dict, Any, Optional
-from peft import LoraConfig, get_peft_model, TaskType
+try:
+    # Optional dependency: only required when --use_lora is enabled
+    from peft import LoraConfig, get_peft_model, TaskType
+except ModuleNotFoundError:  # pragma: no cover
+    LoraConfig = None  # type: ignore[assignment]
+    get_peft_model = None  # type: ignore[assignment]
+    TaskType = None  # type: ignore[assignment]
 
 from sklearn.utils.class_weight import compute_class_weight
 import torch.nn.functional as F
@@ -850,6 +856,11 @@ def main():
     # Apply LoRA if requested
     if args.use_lora:
         print("\n[Applying LoRA (Low-Rank Adaptation)]")
+        if LoraConfig is None or get_peft_model is None or TaskType is None:
+            raise ModuleNotFoundError(
+                "LoRA requested (--use_lora) but 'peft' is not installed. "
+                "Install it with: pip install peft"
+            )
         
         # Auto-detect target modules based on model architecture
         model_type = model.config.model_type.lower()

@@ -1,27 +1,32 @@
 """
-Input style augmentation for NLP Multi-Type project.
+Input style overwrite for NLP Multi-Type project (NO data size increase).
 
 - Works on processed JSONL files produced by src.data_prep
   (e.g., data/processed/train_4class.jsonl)
 - Follows the DATA_CONTRACT schema, including:
   id, family_id, source, text, label, label_id, text_len_char, text_len_word, ...
 
-Augmentation rules:
+Overwrite rules (NO extra rows):
 - T1 (Human Original):
-    - add slang (token-level replacements + optional insertions)
-    - add at most 1 small character-level typo per sentence
+    - slang replacements + optional insertions
+    - at most 1 small character-level typo per sentence
 - T3 (Human Paraphrased):
-    - add light slang only
+    - light slang only
     - no typos
 - T2/T4:
     - unchanged
 
 Usage (from repo root):
-    python -m src.input_style_augmentation \
+    python -m src.input_style_overwrite \
         --input data/processed/train_4class.jsonl \
-        --output data/processed/train_4class_augmented.jsonl \
-        --t1_aug_per_sample 1 \
-        --t3_aug_per_sample 1
+        --output data/processed/train_4class_style.jsonl \
+        --seed 42
+
+Repeat for val/test with the same seed.
+
+Notes:
+- Output JSONL row count == input JSONL row count.
+- No class distribution skew (no oversampling).
 """
 
 import argparse
@@ -147,11 +152,11 @@ def _apply_random_typo(word: str, rng: random.Random) -> str:
 
     if op == "drop" and len(chars) >= 2:
         i = rng.randrange(len(chars))
-        return "".join(chars[:i] + chars[i + 1 :])
+        return "".join(chars[:i] + chars[i + 1:])
 
     # default: duplicate
     i = rng.randrange(len(chars))
-    return "".join(chars[: i + 1] + [chars[i]] + chars[i + 1 :])
+    return "".join(chars[:i + 1] + [chars[i]] + chars[i + 1:])
 
 
 def inject_typos(
@@ -192,7 +197,7 @@ def inject_typos(
 
 
 # -------------------------
-# Row-level augmentation
+# Row-level overwrite
 # -------------------------
 
 def update_length_fields(row: Dict[str, Any]) -> None:
@@ -206,74 +211,69 @@ def update_length_fields(row: Dict[str, Any]) -> None:
     row["text_len_word"] = len(text.split())
 
 
-def augment_row(
+def overwrite_row_style(
     row: Dict[str, Any],
     rng: random.Random,
-    t1_aug_per_sample: int,
-    t3_aug_per_sample: int,
-) -> List[Dict[str, Any]]:
+    # T1 params
+    t1_replace_prob: float,
+    t1_insert_prob: float,
+    t1_max_insertions: int,
+    t1_max_typos: int,
+    # T3 params
+    t3_replace_prob: float,
+    t3_insert_prob: float,
+    t3_max_insertions: int,
+    # optional metadata
+    add_meta: bool = True,
+) -> Dict[str, Any]:
     """
-    Given a single JSONL row, return [original, augmented...]
-    according to its label.
-
-    - T1: slang + typo (augment t1_aug_per_sample times)
-    - T3: slang only (augment t3_aug_per_sample times)
-    - T2/T4: no augmentation
+    Overwrite row['text'] for T1/T3 only.
+    Output row count stays EXACTLY the same as input.
     """
     label_str = row.get("label")
     label_id = row.get("label_id")
-    base_id = row.get("id", "")
     text = row.get("text", "") or ""
 
     # robust check: support both string labels and numeric ids
     is_t1 = (label_str == "T1") or (label_id == 0)
     is_t3 = (label_str == "T3") or (label_id == 2)
 
-    # always recalc lengths for original
+    aug_tag = "none"
+
+    if is_t1:
+        text = inject_slang(
+            text,
+            rng=rng,
+            replace_prob=t1_replace_prob,
+            insert_prob=t1_insert_prob,
+            max_insertions=t1_max_insertions,
+        )
+        text = inject_typos(
+            text,
+            rng=rng,
+            max_typos=t1_max_typos,
+        )
+        row["text"] = text
+        aug_tag = "t1_slang+typo"
+
+    elif is_t3:
+        text = inject_slang(
+            text,
+            rng=rng,
+            replace_prob=t3_replace_prob,
+            insert_prob=t3_insert_prob,
+            max_insertions=t3_max_insertions,
+        )
+        row["text"] = text
+        aug_tag = "t3_light_slang"
+
     update_length_fields(row)
 
-    outputs = [row]
+    if add_meta:
+        # helpful for analysis; doesn't affect label distribution
+        row["style_aug"] = aug_tag
 
-    if is_t1 and t1_aug_per_sample > 0:
-        for k in range(t1_aug_per_sample):
-            aug = dict(row)  # shallow copy (family_id/source/etc. preserved)
-
-            aug_text = inject_slang(
-                text,
-                rng=rng,
-                replace_prob=0.4,   # stronger slang for T1
-                insert_prob=0.6,
-                max_insertions=2,
-            )
-            aug_text = inject_typos(
-                aug_text,
-                rng=rng,
-                max_typos=1,        # at most 1 typo per sentence
-            )
-            aug["text"] = aug_text
-            aug["id"] = f"{base_id}__aug_t1_{k+1}"
-            # label / label_id stay the same
-            update_length_fields(aug)
-            outputs.append(aug)
-
-    elif is_t3 and t3_aug_per_sample > 0:
-        for k in range(t3_aug_per_sample):
-            aug = dict(row)
-
-            aug_text = inject_slang(
-                text,
-                rng=rng,
-                replace_prob=0.2,   # milder slang for T3
-                insert_prob=0.3,
-                max_insertions=1,
-            )
-            # no typos for T3
-            aug["text"] = aug_text
-            aug["id"] = f"{base_id}__aug_t3_{k+1}"
-            update_length_fields(aug)
-            outputs.append(aug)
-
-    return outputs
+    return row
 
 
 # -------------------------
@@ -283,15 +283,24 @@ def augment_row(
 def process_file(
     input_path: Path,
     output_path: Path,
-    t1_aug_per_sample: int,
-    t3_aug_per_sample: int,
     seed: int,
+    # T1 params
+    t1_replace_prob: float,
+    t1_insert_prob: float,
+    t1_max_insertions: int,
+    t1_max_typos: int,
+    # T3 params
+    t3_replace_prob: float,
+    t3_insert_prob: float,
+    t3_max_insertions: int,
+    # meta
+    add_meta: bool,
 ) -> None:
     rng = random.Random(seed)
 
     num_rows = 0
-    num_t1_aug = 0
-    num_t3_aug = 0
+    num_t1_changed = 0
+    num_t3_changed = 0
 
     with input_path.open("r", encoding="utf-8") as fin, \
             output_path.open("w", encoding="utf-8") as fout:
@@ -300,41 +309,44 @@ def process_file(
             line = line.strip()
             if not line:
                 continue
+
             row: Dict[str, Any] = json.loads(line)
-
-            augmented_rows = augment_row(
-                row=row,
-                rng=rng,
-                t1_aug_per_sample=t1_aug_per_sample,
-                t3_aug_per_sample=t3_aug_per_sample,
-            )
-
-            # write original + augmented
-            for r in augmented_rows:
-                fout.write(json.dumps(r, ensure_ascii=False) + "\n")
-
-            num_rows += 1
 
             label_str = row.get("label")
             label_id = row.get("label_id")
             is_t1 = (label_str == "T1") or (label_id == 0)
             is_t3 = (label_str == "T3") or (label_id == 2)
 
-            if is_t1:
-                num_t1_aug += max(0, len(augmented_rows) - 1)
-            elif is_t3:
-                num_t3_aug += max(0, len(augmented_rows) - 1)
+            row = overwrite_row_style(
+                row=row,
+                rng=rng,
+                t1_replace_prob=t1_replace_prob,
+                t1_insert_prob=t1_insert_prob,
+                t1_max_insertions=t1_max_insertions,
+                t1_max_typos=t1_max_typos,
+                t3_replace_prob=t3_replace_prob,
+                t3_insert_prob=t3_insert_prob,
+                t3_max_insertions=t3_max_insertions,
+                add_meta=add_meta,
+            )
 
-    total = num_rows + num_t1_aug + num_t3_aug
-    print(f"Processed base rows:        {num_rows}")
-    print(f"Extra T1 augmented rows:   {num_t1_aug}")
-    print(f"Extra T3 augmented rows:   {num_t3_aug}")
-    print(f"Total output rows:         {total}")
+            if is_t1:
+                num_t1_changed += 1
+            elif is_t3:
+                num_t3_changed += 1
+
+            fout.write(json.dumps(row, ensure_ascii=False) + "\n")
+            num_rows += 1
+
+    print(f"Processed rows (output == input): {num_rows}")
+    print(f"T1 rows overwritten:             {num_t1_changed}")
+    print(f"T3 rows overwritten:             {num_t3_changed}")
+    print(f"T2/T4 rows unchanged:            {num_rows - num_t1_changed - num_t3_changed}")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Style-based input augmentation for T1/T3 (slang + typos)."
+        description="Style-based overwrite for T1/T3 (slang + typos) without increasing dataset size."
     )
     parser.add_argument(
         "--input",
@@ -346,25 +358,31 @@ def main():
         "--output",
         type=str,
         required=True,
-        help="Output JSONL file, e.g. data/processed/train_4class_augmented.jsonl",
-    )
-    parser.add_argument(
-        "--t1_aug_per_sample",
-        type=int,
-        default=1,
-        help="Number of augmented variants per T1 sample (default: 1).",
-    )
-    parser.add_argument(
-        "--t3_aug_per_sample",
-        type=int,
-        default=1,
-        help="Number of augmented variants per T3 sample (default: 1).",
+        help="Output JSONL file, e.g. data/processed/train_4class_style.jsonl",
     )
     parser.add_argument(
         "--seed",
         type=int,
         default=42,
-        help="Random seed (default: 42).",
+        help="Random seed (default: 42). Use same seed across train/val/test for reproducibility.",
+    )
+
+    # T1 params
+    parser.add_argument("--t1_replace_prob", type=float, default=0.4)
+    parser.add_argument("--t1_insert_prob", type=float, default=0.6)
+    parser.add_argument("--t1_max_insertions", type=int, default=2)
+    parser.add_argument("--t1_max_typos", type=int, default=1)
+
+    # T3 params
+    parser.add_argument("--t3_replace_prob", type=float, default=0.2)
+    parser.add_argument("--t3_insert_prob", type=float, default=0.3)
+    parser.add_argument("--t3_max_insertions", type=int, default=1)
+
+    # meta
+    parser.add_argument(
+        "--add_meta",
+        action="store_true",
+        help="If set, add row['style_aug'] = {none|t1_slang+typo|t3_light_slang} for analysis.",
     )
 
     args = parser.parse_args()
@@ -376,21 +394,33 @@ def main():
         raise FileNotFoundError(f"Input file not found: {input_path}")
 
     print("==============================================")
-    print("Input style augmentation (T1/T3 slang & typos)")
+    print("Input style overwrite (NO extra rows)")
     print("==============================================")
-    print(f"Input:                 {input_path}")
-    print(f"Output:                {output_path}")
-    print(f"T1 aug per sample:     {args.t1_aug_per_sample}")
-    print(f"T3 aug per sample:     {args.t3_aug_per_sample}")
-    print(f"Seed:                  {args.seed}")
+    print(f"Input:             {input_path}")
+    print(f"Output:            {output_path}")
+    print(f"Seed:              {args.seed}")
+    print(f"T1 replace_prob:   {args.t1_replace_prob}")
+    print(f"T1 insert_prob:    {args.t1_insert_prob}")
+    print(f"T1 max_insertions: {args.t1_max_insertions}")
+    print(f"T1 max_typos:      {args.t1_max_typos}")
+    print(f"T3 replace_prob:   {args.t3_replace_prob}")
+    print(f"T3 insert_prob:    {args.t3_insert_prob}")
+    print(f"T3 max_insertions: {args.t3_max_insertions}")
+    print(f"Add meta:          {args.add_meta}")
     print()
 
     process_file(
         input_path=input_path,
         output_path=output_path,
-        t1_aug_per_sample=args.t1_aug_per_sample,
-        t3_aug_per_sample=args.t3_aug_per_sample,
         seed=args.seed,
+        t1_replace_prob=args.t1_replace_prob,
+        t1_insert_prob=args.t1_insert_prob,
+        t1_max_insertions=args.t1_max_insertions,
+        t1_max_typos=args.t1_max_typos,
+        t3_replace_prob=args.t3_replace_prob,
+        t3_insert_prob=args.t3_insert_prob,
+        t3_max_insertions=args.t3_max_insertions,
+        add_meta=args.add_meta,
     )
 
 

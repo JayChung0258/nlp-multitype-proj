@@ -1,0 +1,886 @@
+{
+  "generated_at_utc": "2025-12-12T07:47:22.506053+00:00",
+  "repo_root": "C:\\Users\\User\\Documents\\GitHub\\nlp-multitype-proj",
+  "sources": {
+    "processed_dir": "results\\transformer",
+    "processed_slang_dir": "results\\transformer_slang"
+  },
+  "models": [
+    {
+      "model_slug": "albert-base-v2",
+      "model_name": "albert-base-v2",
+      "processed": {
+        "metrics_path": "results\\transformer\\albert-base-v2\\metrics.json",
+        "metrics": {
+          "model_name": "albert-base-v2",
+          "model_slug": "albert-base-v2",
+          "timestamp_utc": "2025-12-08T16:16:37.179415Z",
+          "train_samples": 13966,
+          "val_samples": 2996,
+          "test_samples": 2997,
+          "max_seq_length": 256,
+          "train_batch_size": 16,
+          "eval_batch_size": 32,
+          "num_train_epochs": 1.0,
+          "learning_rate": 2e-05,
+          "weight_decay": 0.01,
+          "warmup_ratio": 0.1,
+          "seed": 42,
+          "num_parameters": 11686660,
+          "accuracy_test": 0.6873540206873541,
+          "macro_f1_test": 0.6130284771792361,
+          "f1_per_class_test": {
+            "T1": 0.6627697841726619,
+            "T2": 0.8688085676037484,
+            "T3": 0.04645161290322581,
+            "T4": 0.8740839440373085
+          },
+          "confusion_matrix_test": [
+            [
+              737,
+              0,
+              6,
+              7
+            ],
+            [
+              13,
+              649,
+              3,
+              85
+            ],
+            [
+              715,
+              11,
+              18,
+              3
+            ],
+            [
+              9,
+              84,
+              1,
+              656
+            ]
+          ],
+          "accuracy_val": 0.6802403204272364,
+          "macro_f1_val": 0.6058557992538705,
+          "f1_per_class_val": {
+            "T1": 0.6564610535794687,
+            "T2": 0.8586883029073699,
+            "T3": 0.041343669250646,
+            "T4": 0.8669301712779973
+          },
+          "train_time_sec": 389.52634841704275,
+          "eval_time_test_sec": 33.35446783399675,
+          "throughput_samples_per_sec": 89.85303003231516,
+          "model_size_mb": 47.479
+        }
+      },
+      "processed_slang": {
+        "metrics_path": "results\\transformer_slang\\albert-base-v2\\metrics.json",
+        "metrics": {
+          "model_name": "albert-base-v2",
+          "model_slug": "albert-base-v2",
+          "timestamp_utc": "2025-12-12T02:58:08.805190Z",
+          "train_samples": 13966,
+          "val_samples": 2996,
+          "test_samples": 2997,
+          "max_seq_length": 256,
+          "train_batch_size": 16,
+          "eval_batch_size": 32,
+          "num_train_epochs": 3.0,
+          "learning_rate": 2e-05,
+          "weight_decay": 0.01,
+          "warmup_ratio": 0.1,
+          "seed": 42,
+          "num_parameters": 11686660,
+          "accuracy_test": 0.8962295628962296,
+          "macro_f1_test": 0.8962093879297433,
+          "f1_per_class_test": {
+            "T1": 0.9082446808510638,
+            "T2": 0.8931398416886543,
+            "T3": 0.8908355795148248,
+            "T4": 0.8926174496644296
+          },
+          "confusion_matrix_test": [
+            [
+              683,
+              1,
+              64,
+              2
+            ],
+            [
+              1,
+              677,
+              7,
+              65
+            ],
+            [
+              69,
+              9,
+              661,
+              8
+            ],
+            [
+              1,
+              79,
+              5,
+              665
+            ]
+          ],
+          "accuracy_val": 0.8938584779706275,
+          "macro_f1_val": 0.8938842514834416,
+          "f1_per_class_val": {
+            "T1": 0.9039623908663532,
+            "T2": 0.8893280632411067,
+            "T3": 0.8881446751507033,
+            "T4": 0.8941018766756033
+          },
+          "train_time_sec": 688.7172610860002,
+          "eval_time_test_sec": 16.33231706200013,
+          "throughput_samples_per_sec": 183.5012134911967,
+          "model_size_mb": 47.479
+        }
+      },
+      "delta_slang_minus_processed": {
+        "accuracy_test": 0.2088755422088755,
+        "macro_f1_test": 0.2831809107505071,
+        "f1_per_class_test": {
+          "T1": 0.24547489667840194,
+          "T2": 0.024331274084905985,
+          "T3": 0.844383966611599,
+          "T4": 0.018533505627121083
+        }
+      }
+    },
+    {
+      "model_slug": "bert-base-uncased",
+      "model_name": "bert-base-uncased",
+      "processed": {
+        "metrics_path": "results\\transformer\\bert-base-uncased\\metrics.json",
+        "metrics": {
+          "model_name": "bert-base-uncased",
+          "model_slug": "bert-base-uncased",
+          "timestamp_utc": "2025-11-26T00:36:12.292157Z",
+          "train_samples": 13966,
+          "val_samples": 2996,
+          "test_samples": 2997,
+          "max_seq_length": 256,
+          "train_batch_size": 16,
+          "eval_batch_size": 32,
+          "num_train_epochs": 3.0,
+          "learning_rate": 2e-05,
+          "weight_decay": 0.01,
+          "warmup_ratio": 0.1,
+          "seed": 42,
+          "num_parameters": 109485316,
+          "accuracy_test": 0.5935935935935935,
+          "macro_f1_test": 0.5705778558370692,
+          "f1_per_class_test": {
+            "T1": 0.30687830687830686,
+            "T2": 0.7446808510638298,
+            "T3": 0.5295950155763239,
+            "T4": 0.7011572498298162
+          },
+          "confusion_matrix_test": [
+            [
+              174,
+              116,
+              378,
+              82
+            ],
+            [
+              19,
+              665,
+              13,
+              53
+            ],
+            [
+              146,
+              107,
+              425,
+              69
+            ],
+            [
+              45,
+              148,
+              42,
+              515
+            ]
+          ],
+          "accuracy_val": 0.5881174899866488,
+          "macro_f1_val": 0.5653917816485133,
+          "f1_per_class_val": {
+            "T1": 0.2951111111111111,
+            "T2": 0.74364896073903,
+            "T3": 0.5183374083129584,
+            "T4": 0.704469646430954
+          },
+          "train_time_sec": 1106.3357211250113,
+          "eval_time_test_sec": 20.669861332979053,
+          "throughput_samples_per_sec": 144.993715812609,
+          "model_size_mb": 418.577
+        }
+      },
+      "processed_slang": {
+        "metrics_path": "results\\transformer_slang\\bert-base-uncased\\metrics.json",
+        "metrics": {
+          "model_name": "bert-base-uncased",
+          "model_slug": "bert-base-uncased",
+          "timestamp_utc": "2025-12-12T02:36:54.749830Z",
+          "train_samples": 13966,
+          "val_samples": 2996,
+          "test_samples": 2997,
+          "max_seq_length": 256,
+          "train_batch_size": 16,
+          "eval_batch_size": 32,
+          "num_train_epochs": 3.0,
+          "learning_rate": 2e-05,
+          "weight_decay": 0.01,
+          "warmup_ratio": 0.1,
+          "seed": 42,
+          "num_parameters": 109485316,
+          "accuracy_test": 0.8104771438104772,
+          "macro_f1_test": 0.8109364584292874,
+          "f1_per_class_test": {
+            "T1": 0.927536231884058,
+            "T2": 0.797583081570997,
+            "T3": 0.7650816181689141,
+            "T4": 0.7535449020931803
+          },
+          "confusion_matrix_test": [
+            [
+              672,
+              11,
+              50,
+              17
+            ],
+            [
+              4,
+              660,
+              21,
+              65
+            ],
+            [
+              20,
+              97,
+              539,
+              91
+            ],
+            [
+              3,
+              137,
+              52,
+              558
+            ]
+          ],
+          "accuracy_val": 0.8194259012016022,
+          "macro_f1_val": 0.819605414908495,
+          "f1_per_class_val": {
+            "T1": 0.9394969408565602,
+            "T2": 0.8002473716759431,
+            "T3": 0.7718309859154929,
+            "T4": 0.7668463611859838
+          },
+          "train_time_sec": 494.25221876700016,
+          "eval_time_test_sec": 9.018901699999788,
+          "throughput_samples_per_sec": 332.30210281591945,
+          "model_size_mb": 418.577
+        }
+      },
+      "delta_slang_minus_processed": {
+        "accuracy_test": 0.21688355021688366,
+        "macro_f1_test": 0.2403586025922182,
+        "f1_per_class_test": {
+          "T1": 0.6206579250057511,
+          "T2": 0.05290223050716725,
+          "T3": 0.23548660259259013,
+          "T4": 0.05238765226336406
+        }
+      }
+    },
+    {
+      "model_slug": "distilbert-base-uncased",
+      "model_name": "distilbert-base-uncased",
+      "processed": {
+        "metrics_path": "results\\transformer\\distilbert-base-uncased\\metrics.json",
+        "metrics": {
+          "model_name": "distilbert-base-uncased",
+          "model_slug": "distilbert-base-uncased",
+          "timestamp_utc": "2025-12-09T11:57:28.170163Z",
+          "train_samples": 13966,
+          "val_samples": 2996,
+          "test_samples": 2997,
+          "max_seq_length": 256,
+          "train_batch_size": 16,
+          "eval_batch_size": 32,
+          "num_train_epochs": 1.0,
+          "learning_rate": 2e-05,
+          "weight_decay": 0.01,
+          "warmup_ratio": 0.1,
+          "seed": 42,
+          "num_parameters": 741124,
+          "accuracy_test": 0.35235235235235235,
+          "macro_f1_test": 0.3393217016608048,
+          "f1_per_class_test": {
+            "T1": 0.22357019064124783,
+            "T2": 0.45923460898502494,
+            "T3": 0.3239145416953825,
+            "T4": 0.3505674653215637
+          },
+          "confusion_matrix_test": [
+            [
+              129,
+              208,
+              222,
+              191
+            ],
+            [
+              66,
+              414,
+              97,
+              173
+            ],
+            [
+              116,
+              202,
+              235,
+              194
+            ],
+            [
+              93,
+              229,
+              150,
+              278
+            ]
+          ],
+          "accuracy_val": 0.3581441922563418,
+          "macro_f1_val": 0.3406630281322856,
+          "f1_per_class_val": {
+            "T1": 0.19874664279319607,
+            "T2": 0.46455026455026455,
+            "T3": 0.3268698060941828,
+            "T4": 0.372485399091499
+          },
+          "train_time_sec": 137.86543566698674,
+          "eval_time_test_sec": 10.265952374902554,
+          "throughput_samples_per_sec": 291.93589552654123,
+          "model_size_mb": 3.737
+        }
+      },
+      "processed_slang": {
+        "metrics_path": "results\\transformer_slang\\distilbert-base-uncased\\metrics.json",
+        "metrics": {
+          "model_name": "distilbert-base-uncased",
+          "model_slug": "distilbert-base-uncased",
+          "timestamp_utc": "2025-12-12T02:28:06.253091Z",
+          "train_samples": 13966,
+          "val_samples": 2996,
+          "test_samples": 2997,
+          "max_seq_length": 256,
+          "train_batch_size": 16,
+          "eval_batch_size": 32,
+          "num_train_epochs": 3.0,
+          "learning_rate": 2e-05,
+          "weight_decay": 0.01,
+          "warmup_ratio": 0.1,
+          "seed": 42,
+          "num_parameters": 66956548,
+          "accuracy_test": 0.8114781448114782,
+          "macro_f1_test": 0.8116586689521399,
+          "f1_per_class_test": {
+            "T1": 0.9310580204778157,
+            "T2": 0.8029925187032418,
+            "T3": 0.7600554785020804,
+            "T4": 0.7525286581254215
+          },
+          "confusion_matrix_test": [
+            [
+              682,
+              8,
+              47,
+              13
+            ],
+            [
+              2,
+              644,
+              30,
+              74
+            ],
+            [
+              25,
+              86,
+              548,
+              88
+            ],
+            [
+              6,
+              116,
+              70,
+              558
+            ]
+          ],
+          "accuracy_val": 0.8167556742323098,
+          "macro_f1_val": 0.816936371344992,
+          "f1_per_class_val": {
+            "T1": 0.9389416553595658,
+            "T2": 0.8020176544766708,
+            "T3": 0.7692307692307693,
+            "T4": 0.7575554063129617
+          },
+          "train_time_sec": 253.8044784880001,
+          "eval_time_test_sec": 4.510576278999906,
+          "throughput_samples_per_sec": 664.4383809566126,
+          "model_size_mb": 256.332
+        }
+      },
+      "delta_slang_minus_processed": {
+        "accuracy_test": 0.4591257924591258,
+        "macro_f1_test": 0.4723369672913351,
+        "f1_per_class_test": {
+          "T1": 0.7074878298365679,
+          "T2": 0.3437579097182169,
+          "T3": 0.43614093680669797,
+          "T4": 0.4019611928038578
+        }
+      }
+    },
+    {
+      "model_slug": "google-electra-base-discriminator",
+      "model_name": "google/electra-base-discriminator",
+      "processed": {
+        "metrics_path": "results\\transformer\\google-electra-base-discriminator\\metrics.json",
+        "metrics": {
+          "model_name": "google/electra-base-discriminator",
+          "model_slug": "google-electra-base-discriminator",
+          "timestamp_utc": "2025-12-08T15:37:32.235941Z",
+          "train_samples": 13966,
+          "val_samples": 2996,
+          "test_samples": 2997,
+          "max_seq_length": 256,
+          "train_batch_size": 16,
+          "eval_batch_size": 32,
+          "num_train_epochs": 1.0,
+          "learning_rate": 2e-05,
+          "weight_decay": 0.01,
+          "warmup_ratio": 0.1,
+          "seed": 42,
+          "num_parameters": 109485316,
+          "accuracy_test": 0.574240907574241,
+          "macro_f1_test": 0.5604441271761285,
+          "f1_per_class_test": {
+            "T1": 0.3745980707395498,
+            "T2": 0.7417735638594535,
+            "T3": 0.4669211195928753,
+            "T4": 0.6584837545126354
+          },
+          "confusion_matrix_test": [
+            [
+              233,
+              108,
+              338,
+              71
+            ],
+            [
+              9,
+              665,
+              38,
+              38
+            ],
+            [
+              201,
+              109,
+              367,
+              70
+            ],
+            [
+              51,
+              161,
+              82,
+              456
+            ]
+          ],
+          "accuracy_val": 0.5694259012016022,
+          "macro_f1_val": 0.5548410385946401,
+          "f1_per_class_val": {
+            "T1": 0.3640776699029126,
+            "T2": 0.7484662576687117,
+            "T3": 0.4541429475015813,
+            "T4": 0.6526772793053546
+          },
+          "train_time_sec": 348.84610783297103,
+          "eval_time_test_sec": 24.155757166910917,
+          "throughput_samples_per_sec": 124.06980163326679,
+          "model_size_mb": 418.578
+        }
+      },
+      "processed_slang": {
+        "metrics_path": "results\\transformer_slang\\google-electra-base-discriminator\\metrics.json",
+        "metrics": {
+          "model_name": "google/electra-base-discriminator",
+          "model_slug": "google-electra-base-discriminator",
+          "timestamp_utc": "2025-12-12T03:09:15.514373Z",
+          "train_samples": 13966,
+          "val_samples": 2996,
+          "test_samples": 2997,
+          "max_seq_length": 256,
+          "train_batch_size": 16,
+          "eval_batch_size": 32,
+          "num_train_epochs": 3.0,
+          "learning_rate": 2e-05,
+          "weight_decay": 0.01,
+          "warmup_ratio": 0.1,
+          "seed": 42,
+          "num_parameters": 109485316,
+          "accuracy_test": 0.8408408408408409,
+          "macro_f1_test": 0.8407301473557032,
+          "f1_per_class_test": {
+            "T1": 0.9579375848032564,
+            "T2": 0.8163024217365623,
+            "T3": 0.8025034770514604,
+            "T4": 0.7861771058315334
+          },
+          "confusion_matrix_test": [
+            [
+              706,
+              11,
+              30,
+              3
+            ],
+            [
+              3,
+              691,
+              21,
+              35
+            ],
+            [
+              12,
+              103,
+              577,
+              55
+            ],
+            [
+              3,
+              138,
+              63,
+              546
+            ]
+          ],
+          "accuracy_val": 0.8387850467289719,
+          "macro_f1_val": 0.8383623008911331,
+          "f1_per_class_val": {
+            "T1": 0.9662618083670715,
+            "T2": 0.8144635447540012,
+            "T3": 0.7940761636107193,
+            "T4": 0.7786476868327402
+          },
+          "train_time_sec": 624.5090422129997,
+          "eval_time_test_sec": 12.258658599000228,
+          "throughput_samples_per_sec": 244.480256611798,
+          "model_size_mb": 418.578
+        }
+      },
+      "delta_slang_minus_processed": {
+        "accuracy_test": 0.2665999332665999,
+        "macro_f1_test": 0.2802860201795747,
+        "f1_per_class_test": {
+          "T1": 0.5833395140637065,
+          "T2": 0.07452885787710883,
+          "T3": 0.3355823574585851,
+          "T4": 0.12769335131889803
+        }
+      }
+    },
+    {
+      "model_slug": "microsoft-deberta-v3-base",
+      "model_name": "microsoft/deberta-v3-base",
+      "processed": {
+        "metrics_path": "results\\transformer\\microsoft-deberta-v3-base\\metrics.json",
+        "metrics": {
+          "model_name": "microsoft/deberta-v3-base",
+          "model_slug": "microsoft-deberta-v3-base",
+          "timestamp_utc": "2025-12-10T11:15:11.456438Z",
+          "train_samples": 13966,
+          "val_samples": 2996,
+          "test_samples": 2997,
+          "max_seq_length": 256,
+          "train_batch_size": 16,
+          "eval_batch_size": 32,
+          "num_train_epochs": 3.0,
+          "learning_rate": 2e-05,
+          "weight_decay": 0.01,
+          "warmup_ratio": 0.1,
+          "seed": 42,
+          "num_parameters": 184425220,
+          "accuracy_test": 0.7107107107107107,
+          "macro_f1_test": 0.7106612630269518,
+          "f1_per_class_test": {
+            "T1": 0.5051194539249146,
+            "T2": 0.9154746423927178,
+            "T3": 0.5153294194390085,
+            "T4": 0.906721536351166
+          },
+          "confusion_matrix_test": [
+            [
+              370,
+              0,
+              377,
+              3
+            ],
+            [
+              0,
+              704,
+              6,
+              40
+            ],
+            [
+              342,
+              6,
+              395,
+              4
+            ],
+            [
+              3,
+              78,
+              8,
+              661
+            ]
+          ],
+          "accuracy_val": 0.7002670226969292,
+          "macro_f1_val": 0.6997353231855754,
+          "f1_per_class_val": {
+            "T1": 0.4976271186440678,
+            "T2": 0.9002557544757033,
+            "T3": 0.4996695307336418,
+            "T4": 0.9013888888888889
+          },
+          "train_time_sec": 1730.2004251250764,
+          "eval_time_test_sec": 40.947807666962035,
+          "throughput_samples_per_sec": 73.19073158629864,
+          "model_size_mb": 714.159
+        }
+      },
+      "processed_slang": {
+        "metrics_path": "results\\transformer_slang\\microsoft-deberta-v3-base\\metrics.json",
+        "metrics": {
+          "model_name": "microsoft/deberta-v3-base",
+          "model_slug": "microsoft-deberta-v3-base",
+          "timestamp_utc": "2025-12-12T03:26:01.352498Z",
+          "train_samples": 13966,
+          "val_samples": 2996,
+          "test_samples": 2997,
+          "max_seq_length": 256,
+          "train_batch_size": 16,
+          "eval_batch_size": 32,
+          "num_train_epochs": 3.0,
+          "learning_rate": 2e-05,
+          "weight_decay": 0.01,
+          "warmup_ratio": 0.1,
+          "seed": 42,
+          "num_parameters": 184425220,
+          "accuracy_test": 0.9392726059392726,
+          "macro_f1_test": 0.939371689404304,
+          "f1_per_class_test": {
+            "T1": 0.9680923285811269,
+            "T2": 0.9160206718346253,
+            "T3": 0.9590488771466315,
+            "T4": 0.914324880054832
+          },
+          "confusion_matrix_test": [
+            [
+              713,
+              0,
+              36,
+              1
+            ],
+            [
+              1,
+              709,
+              4,
+              36
+            ],
+            [
+              8,
+              8,
+              726,
+              5
+            ],
+            [
+              1,
+              81,
+              1,
+              667
+            ]
+          ],
+          "accuracy_val": 0.9432576769025367,
+          "macro_f1_val": 0.943429288364965,
+          "f1_per_class_val": {
+            "T1": 0.9777777777777777,
+            "T2": 0.9165596919127086,
+            "T3": 0.9605351170568562,
+            "T4": 0.9188445667125172
+          },
+          "train_time_sec": 949.2787334340001,
+          "eval_time_test_sec": 18.77000687600048,
+          "throughput_samples_per_sec": 159.66962717696148,
+          "model_size_mb": 714.159
+        }
+      },
+      "delta_slang_minus_processed": {
+        "accuracy_test": 0.22856189522856196,
+        "macro_f1_test": 0.22871042637735228,
+        "f1_per_class_test": {
+          "T1": 0.4629728746562123,
+          "T2": 0.000546029441907514,
+          "T3": 0.443719457707623,
+          "T4": 0.007603343703665999
+        }
+      }
+    },
+    {
+      "model_slug": "roberta-base",
+      "model_name": "roberta-base",
+      "processed": {
+        "metrics_path": "results\\transformer\\roberta-base\\metrics.json",
+        "metrics": {
+          "model_name": "roberta-base",
+          "model_slug": "roberta-base",
+          "timestamp_utc": "2025-11-26T00:55:45.677581Z",
+          "train_samples": 13966,
+          "val_samples": 2996,
+          "test_samples": 2997,
+          "max_seq_length": 256,
+          "train_batch_size": 16,
+          "eval_batch_size": 32,
+          "num_train_epochs": 3.0,
+          "learning_rate": 2e-05,
+          "weight_decay": 0.01,
+          "warmup_ratio": 0.1,
+          "seed": 42,
+          "num_parameters": 124648708,
+          "accuracy_test": 0.7007007007007007,
+          "macro_f1_test": 0.6422891668178548,
+          "f1_per_class_test": {
+            "T1": 0.6623134328358209,
+            "T2": 0.8918575063613231,
+            "T3": 0.1248527679623086,
+            "T4": 0.8901329601119664
+          },
+          "confusion_matrix_test": [
+            [
+              710,
+              4,
+              34,
+              2
+            ],
+            [
+              0,
+              701,
+              9,
+              40
+            ],
+            [
+              684,
+              9,
+              53,
+              1
+            ],
+            [
+              0,
+              108,
+              6,
+              636
+            ]
+          ],
+          "accuracy_val": 0.6979305740987984,
+          "macro_f1_val": 0.6471857643430632,
+          "f1_per_class_val": {
+            "T1": 0.6532759445241512,
+            "T2": 0.8857689853222719,
+            "T3": 0.16234498308906425,
+            "T4": 0.8873531444367657
+          },
+          "train_time_sec": 1124.944219083991,
+          "eval_time_test_sec": 20.469260459009092,
+          "throughput_samples_per_sec": 146.41466925498702,
+          "model_size_mb": 480.113
+        }
+      },
+      "processed_slang": {
+        "metrics_path": "results\\transformer_slang\\roberta-base\\metrics.json",
+        "metrics": {
+          "model_name": "roberta-base",
+          "model_slug": "roberta-base",
+          "timestamp_utc": "2025-12-12T02:45:52.301131Z",
+          "train_samples": 13966,
+          "val_samples": 2996,
+          "test_samples": 2997,
+          "max_seq_length": 256,
+          "train_batch_size": 16,
+          "eval_batch_size": 32,
+          "num_train_epochs": 3.0,
+          "learning_rate": 2e-05,
+          "weight_decay": 0.01,
+          "warmup_ratio": 0.1,
+          "seed": 42,
+          "num_parameters": 124648708,
+          "accuracy_test": 0.9175842509175842,
+          "macro_f1_test": 0.9177644759393676,
+          "f1_per_class_test": {
+            "T1": 0.9561042524005487,
+            "T2": 0.8877805486284289,
+            "T3": 0.9447368421052632,
+            "T4": 0.8824362606232294
+          },
+          "confusion_matrix_test": [
+            [
+              697,
+              1,
+              50,
+              2
+            ],
+            [
+              1,
+              712,
+              4,
+              33
+            ],
+            [
+              10,
+              15,
+              718,
+              4
+            ],
+            [
+              0,
+              126,
+              1,
+              623
+            ]
+          ],
+          "accuracy_val": 0.9168891855807744,
+          "macro_f1_val": 0.9170683719358133,
+          "f1_per_class_val": {
+            "T1": 0.9548213081591369,
+            "T2": 0.8888888888888888,
+            "T3": 0.9409395973154362,
+            "T4": 0.883623693379791
+          },
+          "train_time_sec": 503.99466854,
+          "eval_time_test_sec": 8.24093294000022,
+          "throughput_samples_per_sec": 363.6724169241838,
+          "model_size_mb": 480.113
+        }
+      },
+      "delta_slang_minus_processed": {
+        "accuracy_test": 0.21688355021688355,
+        "macro_f1_test": 0.27547530912151286,
+        "f1_per_class_test": {
+          "T1": 0.29379081956472786,
+          "T2": -0.004076957732894182,
+          "T3": 0.8198840741429546,
+          "T4": -0.007696699488736969
+        }
+      }
+    }
+  ]
+}
